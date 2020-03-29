@@ -210,7 +210,7 @@ true
 onaxis(Ak, Q::QDHT; dim=Q.dim) = J₀₀ .* integrateK(Ak, Q; dim=dim)
 
 """
-    symmetric(A, Q::QDHT; dim=Q.dim)
+    symmetric(A, Q::QDHT)
 
 Create symmetric array from samples in `A`, including on-axis sample.
 
@@ -233,13 +233,13 @@ true
 """
 function symmetric(A, Q::QDHT; dim=Q.dim)
     s = collect(size(A))
-    N = s[dim]
-    s[dim] = 2N + 1
+    N = s[Q.dim]
+    s[Q.dim] = 2N + 1
     out = Array{eltype(A)}(undef, Tuple(s))
-    idxlo = CartesianIndices(size(A)[1:dim-1])
-    idxhi = CartesianIndices(size(A)[dim+1:end])
+    idxlo = CartesianIndices(size(A)[1:Q.dim-1])
+    idxhi = CartesianIndices(size(A)[Q.dim+1:end])
     out[idxlo, 1:N, idxhi] .= A[idxlo, N:-1:1, idxhi]
-    out[idxlo, N+1, idxhi] .= squeeze(onaxis(Q*A, Q), dims=dim)
+    out[idxlo, N+1, idxhi] .= squeeze(onaxis(Q*A, Q), dims=Q.dim)
     out[idxlo, (N+2):(2N+1), idxhi] .= A[idxlo, :, idxhi]
     return out
 end

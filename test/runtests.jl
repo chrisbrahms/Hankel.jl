@@ -68,6 +68,22 @@ end
     f0 = f2(0)
     f0q = Hankel.onaxis(vk, q)
     @test f0 ≈ f0q
+
+    q = QDHT(10, 128); A = exp.(-q.r.^2)
+    As = symmetric(A, q)
+    @test length(As) == 2*length(A)+1
+    @test As[1:128] == A[128:-1:1]
+    @test As[129] ≈ 1
+    @test As[130:end] == A
+
+    AA = hcat(A, A)
+    AAs = symmetric(AA, q; dim=1)
+    @test size(AAs, 1) == 2*length(A)+1
+    for i=1:2
+        @test AAs[1:128, i] == A[128:-1:1]
+        @test AAs[129, i] ≈ 1
+        @test AAs[130:end, i] == A
+    end
 end
 
 @testset "Gaussian divergence" begin
