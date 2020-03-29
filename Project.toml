@@ -2,3 +2,8 @@ name = "Hankel"
 uuid = "74863788-d124-456e-a676-9b76578dd39e"
 authors = ["chrisbrahms <38351086+chrisbrahms@users.noreply.github.com>"]
 version = "0.1.0"
+
+[deps]
+FunctionZeros = "b21f74c0-b399-568f-9643-d20f4fa2c814"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
