@@ -4,7 +4,7 @@ import SpecialFunctions: besselj
 import LinearAlgebra: mul!, ldiv!, dot
 import Base: *, \
 
-export QDHT, integrateK, integrateR, onaxis, symmetric
+export QDHT, integrateK, integrateR, onaxis, symmetric, Rsymmetric
 
 const J₀₀ = besselj(0, 0)
 
@@ -216,6 +216,20 @@ Create symmetric array from samples in `A`, including on-axis sample.
 
 Given `A`, sampled at [r₁, r₂, r₃, ...], generates array sampled at 
 [...-r₃, -r₂, -r₁, 0, r₁, r₂, r₃...]
+
+# Examples
+```jldoctest
+julia> q = QDHT(10, 128); A = exp.(-q.r.^2);
+julia> As = symmetric(A, q);
+julia> size(As)
+(257,)
+julia> As[1:128] == A[128:-1:1]
+true
+julia> As[129] ≈ 1 # should be exp(0) = 1
+true
+julia> As[130:end] == A
+true
+```
 """
 function symmetric(A, Q::QDHT; dim=Q.dim)
     s = collect(size(A))
@@ -230,10 +244,43 @@ function symmetric(A, Q::QDHT; dim=Q.dim)
     return out
 end
 
+"""
+    squeeze(A; dims)
+
+Wrapper around `dropdims` to handle both numbers (return just the number) and arrays
+(return `dropdims(A; dims)`).
+"""
 squeeze(A::Number; dims) = A
 squeeze(A::AbstractArray; dims) = dropdims(A, dims=dims)
 
-Rsymmetric(Q) = vcat(-Q.r[end:-1:1], 0, Q.r)
+"""
+    Rsymmetric(Q::QDHT)
+
+Create radial coordinate array to go along with `symmetric(A, Q::QDHT)`.
+
+# Examples
+```jldoctest
+julia> q = QDHT(10, 4);
+julia> q.r
+4-element Array{Float64,1}:
+ 1.6106347946239767
+ 3.697078919099734
+ 5.795844623798052
+ 7.8973942990196395
+julia> Rsymmetric(q)
+9-element Array{Float64,1}:
+ -7.8973942990196395
+ -5.795844623798052
+ -3.697078919099734
+ -1.6106347946239767
+  0.0
+  1.6106347946239767
+  3.697078919099734
+  5.795844623798052
+  7.8973942990196395
+```
+"""
+Rsymmetric(Q::QDHT) = vcat(-Q.r[end:-1:1], 0, Q.r)
 
 
 "Matrix-vector multiplication along specific dimension of array V"
