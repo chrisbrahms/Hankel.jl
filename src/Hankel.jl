@@ -170,7 +170,7 @@ true
 integrateR(A, Q::QDHT; dim=1) = dimdot(Q.scaleR, A; dim=dim)
 
 """
-    integrateK(A, Q::QDHT; dim=1)
+    integrateK(Ak, Q::QDHT; dim=1)
 
 Radial integral of `A`, over the aperture of `Q` in reciprocal space.
 
@@ -281,7 +281,6 @@ julia> Rsymmetric(q)
 ```
 """
 Rsymmetric(Q::QDHT) = vcat(-Q.r[end:-1:1], 0, Q.r)
-
 
 "Matrix-vector multiplication along specific dimension of array V"
 function dot!(out, M, V; dim=1)
