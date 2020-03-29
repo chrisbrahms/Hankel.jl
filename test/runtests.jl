@@ -29,8 +29,9 @@ end
     f(r) = exp(-1//2 * a^2 * r^2)
     fk(k) = 1/a^2 * exp(-k^2/(2*a^2))
     v = f.(q.r)
+    global vv = copy(v)
     for _ = 1:1000
-        tmp = q * v
+        tmp = q * vv
         global vv = q \ tmp
     end
     @test all(v ≈ vv)
