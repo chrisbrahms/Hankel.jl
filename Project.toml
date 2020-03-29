@@ -1,0 +1,4 @@
+name = "Hankel"
+uuid = "74863788-d124-456e-a676-9b76578dd39e"
+authors = ["chrisbrahms <38351086+chrisbrahms@users.noreply.github.com>"]
+version = "0.1.0"
