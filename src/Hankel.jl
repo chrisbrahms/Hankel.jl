@@ -214,8 +214,8 @@ onaxis(Ak, Q::QDHT; dim=Q.dim) = J₀₀ .* integrateK(Ak, Q; dim=dim)
 
 Create symmetric array from samples in `A`, including on-axis sample.
 
-Given `A`, sampled at [r₁, r₂, r₃, ...], generates array sampled at 
-[...-r₃, -r₂, -r₁, 0, r₁, r₂, r₃...]
+Given `A`, sampled at `[r₁, r₂, r₃, ...]`, generates array sampled at 
+`[...-r₃, -r₂, -r₁, 0, r₁, r₂, r₃...]`
 
 # Examples
 ```jldoctest

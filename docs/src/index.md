@@ -44,7 +44,13 @@ q \ (q * fr) ≈ fr
 To avoid unnecessary multiplications, the transform matrix (``C`` in Yu *et al.*, here it's called `T`) is altered slightly (see [`QDHT`](@ref)), and as a consequence the transformation itself does not conserve energy (i.e. satisfy [Parseval's Theorem](https://en.wikipedia.org/wiki/Parseval%27s_theorem)). To calculate the ``L^2`` norm (e.g. energy in a signal) with correct scaling, use [`integrateR`](@ref) in real (``r``) space and [`integrateK`](@ref) in reciprocal (``k``) space.
 
 ## On-axis and symmetric samples
-The QDHT does not contain a sample on axis, i.e. at ``r=0``, but it can be obtained.
+The QDHT does not contain a sample on axis, i.e. at ``r=0``, but it can be obtained using [`onaxis`](@ref), which takes the *transformed* array as its input. This is because the on-axis sample is obtained from
+
+```math
+f(r=0) = \int_0^\infty \tilde{f}(k) J_0(0) k\,\mathrm{d}k\,.
+```
+
+Given an array `A`, the convenience method [`symmetric`](@ref) produces the symmetric array, i.e. given `A`, sampled at ``[r₁, r₂, r₃, ...]``, it generates the array sampled at ``[...-r₃, -r₂, -r₁, 0, r₁, r₂, r₃...]``. This works also for higher-dimensional arrays. The corresponding spatial coordinates can be obtained with [`Rsymmetric`](@ref).
 
 ## Function Reference
 
