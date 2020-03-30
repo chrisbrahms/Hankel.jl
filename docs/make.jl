@@ -6,6 +6,6 @@ makedocs(
     sitename="Hankel",
 )
 
-# deploydocs(
-#     repo = "github.com/chrisbrahms/Hankel.git",
-# )
+deploydocs(
+    repo = "github.com/chrisbrahms/Hankel.git",
+)
