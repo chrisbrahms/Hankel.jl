@@ -1,7 +1,7 @@
 name = "Hankel"
 uuid = "74863788-d124-456e-a676-9b76578dd39e"
 authors = ["chrisbrahms <38351086+chrisbrahms@users.noreply.github.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 FunctionZeros = "b21f74c0-b399-568f-9643-d20f4fa2c814"
