@@ -294,7 +294,7 @@ end
 function _dot!(out, M, V, idxlo, idxhi)
     for lo in idxlo
         for hi in idxhi
-            mul!(view(out, lo, :, hi), M, view(V, lo, :, hi))
+            view(out, lo, :, hi) .= M * view(V, lo, :, hi)
         end
     end
 end
