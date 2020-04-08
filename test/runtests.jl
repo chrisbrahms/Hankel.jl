@@ -51,8 +51,8 @@ end
     vk3 = copy(v)
     mul!(vk2, q, v)
     mul!(vk3, q, vk3)
-    @test all(vk2 ≈ vk)
-    @test all(vk3 ≈ vk)
+    @test all(vk2 .≈ vk)
+    @test all(vk3 .≈ vk)
 
     v2d = repeat(v, outer=(1, 16))'
     q2d = Hankel.QDHT(R, N, dim=2)
