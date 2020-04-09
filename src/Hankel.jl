@@ -282,6 +282,34 @@ julia> Rsymmetric(q)
 """
 Rsymmetric(Q::QDHT) = vcat(-Q.r[end:-1:1], 0, Q.r)
 
+"""
+    oversample(A, Q::QDHT; factor::Int=4)
+
+Oversample (smooth) the array `A`, which is sampled with the `QDHT` `Q`, by a `factor`.
+
+This works like Fourier-domain zero-padding: a new `QDHT` is created with the same radius,
+but `factor` times more points. The existing array is transformed and placed onto this
+new spatial frequency grid, and the rest filled with zeros. Transforming back yields the
+same shape in space but with more samples.
+
+!!! note
+    Unlike in zero-padding using FFTs, the old and oversampled **spatial** grids do not
+    have any sampling points in common.
+"""
+function oversample(A, Q::QDHT; factor::Int=4)
+    factor == 1 && (return A, Q)
+    QNew = QDHT(Q.R, factor*Q.N, dim=Q.dim)
+    @assert all(QNew.k[1:Q.N] .≈ Q.k)
+    Ak = Q * A
+    shape = collect(size(A))
+    shape[Q.dim] = QNew.N
+    Ako = zeros(eltype(A), Tuple(shape))
+    idxlo = CartesianIndices(size(Ako)[1:Q.dim - 1])
+    idxhi = CartesianIndices(size(Ako)[Q.dim + 1:end])
+    Ako[idxlo, 1:Q.N, idxhi] .= Ak
+    return QNew \ Ako, QNew
+end
+
 "Matrix-vector multiplication along specific dimension of array V"
 function dot!(out, M, V; dim=1)
     size(V, dim) == size(M, 1) || throw(DomainError(

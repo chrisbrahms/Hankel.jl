@@ -108,3 +108,25 @@ end
     @test energy ≈ 2π*Hankel.integrateR(abs2.(Er1), q)
     @test energy ≈ 2π*Hankel.integrateK(abs2.(Ek1), q)
 end
+
+@testset "Oversampling" begin
+    R = 4e-2
+    N = 256
+    w0 = 1e-2
+    a = 2/w0
+    q = Hankel.QDHT(R, N)
+    f(r) = exp(-1//2 * a^2 * r^2)
+    v = f.(q.r)
+    vo, qo = Hankel.oversample(v, q, factor=4)
+    @test qo.N == 4*q.N
+    @test all(isapprox(vo, f.(qo.r), rtol=1e-13))
+    @test integrateR(abs2.(v), q) ≈ integrateR(abs2.(vo), qo)
+    @test f(0) ≈ onaxis(qo*vo, qo)
+
+    v2 = hcat(v, v)
+    vo, qo = Hankel.oversample(v2, q, factor=4)
+    @test qo.N == 4*q.N
+    @test all(isapprox(vo[:, 1], f.(qo.r), rtol=1e-13))
+    @test all(isapprox(vo[:, 2], f.(qo.r), rtol=1e-13))
+    @test integrateR(abs2.(v2), q) ≈ integrateR(abs2.(vo), qo)
+end
