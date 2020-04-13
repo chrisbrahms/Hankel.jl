@@ -4,6 +4,21 @@ import LinearAlgebra: diagm, mul!
 import SpecialFunctions: besselj
 import HCubature: hquadrature
 
+# Brute-force equivalent of Hankel.dot! - slow but certain to be correct
+function slowdot!(out, M, V; dim=1)
+    idxlo = CartesianIndices(size(V)[1:dim-1])
+    idxhi = CartesianIndices(size(V)[dim+1:end])
+    _slowdot!(out, M, V, idxlo, idxhi)
+end
+
+function _slowdot!(out, M, V, idxlo, idxhi)
+    for lo in idxlo
+        for hi in idxhi
+            view(out, lo, :, hi) .= M * view(V, lo, :, hi)
+        end
+    end
+end
+
 @testset "multiplication" begin
     M = diagm(0 => [1, 2, 3])
     V = 2 .* ones((3, 3, 2))
@@ -17,6 +32,21 @@ import HCubature: hquadrature
     @test all(out[:, 2, :] .== 4)
     @test all(out[:, 3, :] .== 6)
     @test_throws DomainError Hankel.dot!(out, M, V, dim=3)
+
+    M = rand(32, 32)
+    V = rand(32)
+    for N = 1:5
+        for n = 1:N
+            shape = 16*ones(Int64, N)
+            shape[n] = 32
+            V = rand(shape...)
+            out = similar(V)
+            out2 = similar(out)
+            Hankel.dot!(out, M, V, dim=n)
+            slowdot!(out2, M, V, dim=n)
+            @test all(out2 .≈ out)
+        end
+    end
 end
 
 @testset "transform" begin
@@ -50,9 +80,7 @@ end
     vk2 = similar(vk)
     vk3 = copy(v)
     mul!(vk2, q, v)
-    mul!(vk3, q, vk3)
     @test all(vk2 .≈ vk)
-    @test all(vk3 .≈ vk)
 
     v2d = repeat(v, outer=(1, 16))'
     q2d = Hankel.QDHT(R, N, dim=2)
