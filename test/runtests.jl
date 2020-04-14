@@ -64,11 +64,11 @@ end
         tmp = q * vv
         global vv = q \ tmp
     end
-    @test all(v ≈ vv)
+    @test all(isapprox.(v, vv, atol=2e-12))
     vk = q * v
     vka = fk.(q.k)
     fki(k) = hquadrature(r -> r.*f(r).*besselj(0, k.*r), 0, R)[1]
-    @test all(vka ≈ vk)
+    @test all(isapprox.(vka, vk, atol=5e-22))
     @test fki(q.k[1]) ≈ vk[1] # doing all of them takes too long
     @test fki(q.k[128]) ≈ vk[128]
     Er = Hankel.integrateR(v.^2, q)
@@ -113,6 +113,26 @@ end
         @test AAs[129, i] ≈ 1
         @test AAs[130:end, i] == A
     end
+end
+
+@testset "big floats" begin
+    R = 4e-2
+    N = 256
+    w0 = 4e-3
+    a = 2/w0
+    q = QDHT(BigFloat(R), 128)
+    f(r) = exp(-1//2 * a^2 * r^2)
+    fk(k) = 1/a^2 * exp(-k^2/(2*a^2))
+    v = f.(q.r)
+    global vv = copy(v)
+    for _ = 1:100
+        tmp = q * vv
+        global vv = q \ tmp
+    end
+    @test all(isapprox.(v, vv, atol=2e-12))
+    vk = q * v
+    vka = fk.(q.k)
+    @test all(isapprox.(vka, vk, atol=5e-22))
 end
 
 @testset "Gaussian divergence" begin

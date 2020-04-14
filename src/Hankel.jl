@@ -26,32 +26,36 @@ The transform matrix T is not the same as C/T defined in [1, 2].
 Instead of dividing by J₁(αₚₙ)J₁(αₚₘ) we divide by J₁(αₚₙ)^2. This cancels out
 the factor between f and F so we do not have to mutltiply (divide) by J₁(αₚₙ) (J₁(αₚₘ)) before
 and after applying the transform matrix. This means T is not symmetric,
-and does not conserve energy. To conserve energy, use `integrateR` and `integrateK`.
+and does not conserve energy. To conserve energy, use [`integrateR`](@ref) and
+[`integrateK`](@ref).
 
 Follows `AbstractFFT` approach of applying fwd and inv transform with `mul` and `ldiv`
 """
-mutable struct QDHT
-    N::Int64 # Number of samples
-    T::Array{Float64, 2} # Transform matrix
-    J1sq::Array{Float64, 1} # J₁² factors
-    K::Float64 # Highest spatial frequency
-    k::Vector{Float64} # Spatial frequency grid
-    R::Float64 # Aperture size (largest real-space coordinate)
-    r::Vector{Float64} # Real-space grid
-    scaleR::Vector{Float64} # Scale factor for real-space integration
-    scaleK::Vector{Float64} # Scale factor for frequency-space integration
-    dim::Int64 # Dimension along which to transform
+struct QDHT{nT<:Real}
+    N::Int # Number of samples
+    T::Array{nT, 2} # Transform matrix
+    J1sq::Array{nT, 1} # J₁² factors
+    K::nT # Highest spatial frequency
+    k::Vector{nT} # Spatial frequency grid
+    R::nT # Aperture size (largest real-space coordinate)
+    r::Vector{nT} # Real-space grid
+    scaleR::Vector{nT} # Scale factor for real-space integration
+    scaleK::Vector{nT} # Scale factor for frequency-space integration
+    dim::Int # Dimension along which to transform
 end
 
 function QDHT(R, N; dim=1)
-    roots = besselj_zero.(0, 1:N)
-    S = besselj_zero(0, N+1)
+    p = convert(typeof(R), 0)
+    roots = besselj_zero.(p, 1:N) # type of besselj_zero is inferred from first argument
+    S = besselj_zero(p, N+1)
     r = roots .* R/S # real-space vector
     K = S/R # Highest spatial frequency
     k = roots .* K/S # Spatial frequency vector
-    J₁ = abs.(besselj.(1, roots))
+    J₁ = abs.(besselj.(p+1, roots))
     J₁sq = J₁ .* J₁
-    T = 2/S * besselj.(0, (roots * roots')./S)./J₁sq' # Transform matrix
+    T = 2/S * besselj.(p, (roots * roots')./S)./J₁sq' # Transform matrix
+
+    K, R = promote(K, R) # deal with R::Int
 
     scaleR = 2*(R/S)^2 ./ J₁sq # scale factor for real-space integration
     scaleK = 2*(K/S)^2 ./ J₁sq # scale factor for reciprocal-space integration
