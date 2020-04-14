@@ -310,7 +310,16 @@ function oversample(A, Q::QDHT; factor::Int=4)
     return QNew \ Ako, QNew
 end
 
-"Matrix-vector multiplication along specific dimension of array V"
+"""
+    dot!(out, M, V; dim=1)
+
+Matrix-vector multiplication along specific dimension of array `V`, storing result in `out`.
+
+This is equivalent to iterating over all dimensions of `V` other than `dim` and applying the
+matrix-vector multiplication `M * v[..., :, ...]`, but works by reshaping the array if
+necessary to take advantage of faster matrix-matrix multiplication. If `dim==1`, `dot!` is
+fastest and allocation-free.
+"""
 function dot!(out, M, V::AbstractVector; dim=1)
     size(V, dim) == size(M, 1) || throw(DomainError(
         "Size of V along dim must be same as size of M"))
@@ -327,9 +336,8 @@ function dot!(out, M, V::AbstractArray{T, 2}; dim=1) where T
     if dim == 1
         mul!(out, M, V)
     else
-        tmp = permutedims(out, (2, 1))
         Vtmp = permutedims(V, (2, 1))
-        mul!(tmp, M, Vtmp)
+        tmp = M * Vtmp
         permutedims!(out, tmp, (2, 1))
     end
 end
@@ -344,13 +352,15 @@ function dot!(out, M, V::AbstractArray; dim=1) where T
         idxhi = CartesianIndices(size(V)[3:end])
         _dot!(out, M, V, idxhi)
     else
-        dims = collect(1:ndims(V))
-        otherdims = filter(d -> d ≠ dim, dims)
+        dims = collect(1:ndims(V)) # [1, 2, ..., ndims(V)]
+        otherdims = filter(d -> d ≠ dim, dims) # dims but without working dimension
+        #= sort dimensions by their size so largest other dimension is part of matrix-matrix
+            multiplication, for speed. other dimensions are iterated over in _dot! =#
         sidcs = sortperm(collect(size(V)[otherdims]), rev=true)
         perm = (dim, otherdims[sidcs]...)
-        iperm = invperm(perm)
-        tmp = permutedims(out, perm)
+        iperm = invperm(perm) # permutation to get back to original size
         Vtmp = permutedims(V, perm)
+        tmp = similar(Vtmp)
         idxhi = CartesianIndices(size(Vtmp)[3:end])
         _dot!(tmp, M, Vtmp, idxhi)
         permutedims!(out, tmp, iperm)
