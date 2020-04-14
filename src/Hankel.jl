@@ -12,7 +12,7 @@ const J₀₀ = besselj(0, 0)
     QDHT(R, N; dim=1)
 
 Quasi-discrete Hankel transform over aperture radius `R` with `N` samples which transforms
-along dimension `dim`
+along dimension `dim`.
 
 After:
 
@@ -29,7 +29,11 @@ and after applying the transform matrix. This means T is not symmetric,
 and does not conserve energy. To conserve energy, use [`integrateR`](@ref) and
 [`integrateK`](@ref).
 
-Follows `AbstractFFT` approach of applying fwd and inv transform with `mul` and `ldiv`
+Follows [`AbstractFFT`](https://github.com/JuliaMath/AbstractFFTs.jl) approach of applying
+fwd and inv transform with `mul` and `ldiv`.
+
+The type of the coefficients is inferred from the type of `R` (but is promoted to be at
+least `Float`), so for arbitrary precision use `QDHT(BigFloat(R), ...)`.
 """
 struct QDHT{nT<:Real}
     N::Int # Number of samples
@@ -377,7 +381,12 @@ function _dot!(out, M, V, idxhi)
     end
 end
 
-"Dot product between vector and one dimension of array A"
+"""
+    dimdot(v, A; dim=1)
+
+Calculate the dot product between vector `v` and one dimension of array `A`, iterating over
+all other dimensions.
+"""
 function dimdot(v, A; dim=1)
     dims = collect(size(A))
     dims[dim] = 1

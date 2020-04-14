@@ -3,9 +3,9 @@ using Hankel
 import LinearAlgebra: mul!, ldiv!
 
 makedocs(
-    sitename="Hankel",
+    sitename="Hankel.jl",
 )
 
 deploydocs(
-    repo = "github.com/chrisbrahms/Hankel.git",
+    repo = "github.com/chrisbrahms/Hankel.jl.git",
 )

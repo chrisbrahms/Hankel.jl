@@ -53,43 +53,6 @@ f(r=0) = \int_0^\infty \tilde{f}(k) J_0(0) k\,\mathrm{d}k\,.
 Given an array `A`, the convenience method [`symmetric`](@ref) produces the symmetric array, i.e. given `A`, sampled at ``[r₁, r₂, r₃, ...]``, it generates the array sampled at ``[...-r₃, -r₂, -r₁, 0, r₁, r₂, r₃...]``. This works also for higher-dimensional arrays. The corresponding spatial coordinates can be obtained with [`Rsymmetric`](@ref).
 
 ## Function Reference
-
-```@docs
-QDHT
-```
-
-```@docs
-mul!(Y, Q::QDHT, A)
-```
-
-```@docs
-ldiv!(Y, Q::QDHT, A)
-```
-
-```@docs
-*(Q::QDHT, A)
-```
-
-```@docs
-\(Q::QDHT, A)
-```
-
-```@docs
-integrateR(A, Q::QDHT; dim=1)
-```
-
-```@docs
-integrateK(Ak, Q::QDHT; dim=1)
-```
-
-```@docs
-onaxis(Ak, Q::QDHT; dim=Q.dim)
-```
-
-```@docs
-symmetric(A, Q::QDHT)
-```
-
-```@docs
-Rsymmetric(Q::QDHT)
+```@autodocs
+Modules = [Hankel]
 ```
