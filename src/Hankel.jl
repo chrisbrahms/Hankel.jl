@@ -25,12 +25,13 @@ but with some alterations:
 The transform matrix T is not the same as C/T defined in [1, 2].
 Instead of dividing by J₁(αₚₙ)J₁(αₚₘ) we divide by J₁(αₚₙ)^2. This cancels out
 the factor between f and F so we do not have to mutltiply (divide) by J₁(αₚₙ) (J₁(αₚₘ)) before
-and after applying the transform matrix. This means T is not symmetric,
-and does not conserve energy. To conserve energy, use [`integrateR`](@ref) and
-[`integrateK`](@ref).
+and after applying the transform matrix.
 
 Follows [`AbstractFFT`](https://github.com/JuliaMath/AbstractFFTs.jl) approach of applying
 fwd and inv transform with `mul` and `ldiv`.
+
+To calculate radial integrals of functions sampled using `QDHT`, use [`integrateR`](@ref)
+and [`integrateK`](@ref).
 
 The type of the coefficients is inferred from the type of `R` (but is promoted to be at
 least `Float`), so for arbitrary precision use `QDHT(BigFloat(R), ...)`.
@@ -61,8 +62,8 @@ function QDHT(R, N; dim=1)
 
     K, R = promote(K, R) # deal with R::Int
 
-    scaleR = 2*(R/S)^2 ./ J₁sq # scale factor for real-space integration
-    scaleK = 2*(K/S)^2 ./ J₁sq # scale factor for reciprocal-space integration
+    scaleR = 2/K^2 ./ J₁sq # scale factor for real-space integration
+    scaleK = 2/R^2 ./ J₁sq # scale factor for reciprocal-space integration
     QDHT(N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
 end
 

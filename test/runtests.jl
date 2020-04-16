@@ -76,6 +76,10 @@ end
     @test Er ≈ Ek
     Er_c = hquadrature(r -> r.*f(r).^2, 0, 1)
     @test Er_c[1] ≈ Er
+    # Test integral of function without squaring
+    ir = Hankel.integrateR(v, q)
+    ir_c = hquadrature(r -> r*f(r), 0, 1)
+    @test ir_c[1] ≈ ir
     # Test that in-place transform works
     vk2 = similar(vk)
     vk3 = copy(v)
@@ -97,6 +101,21 @@ end
     f0 = f2(0)
     f0q = Hankel.onaxis(vk, q)
     @test f0 ≈ f0q
+
+    # test also with a different function which isn't positive definite
+    w0 = 5e-3
+    a = 2/w0
+    f(r) = exp(-1//2 * a^2 * r^2) * cos(16*a*r)
+    v = f.(q.r);
+    vk = q * v;
+    Ir = Hankel.integrateR(v.^2, q)
+    Ik = Hankel.integrateK(vk.^2, q)
+    Ir_c = hquadrature(r -> r*f(r)^2, 0, 1)
+    @test Ir_c[1] ≈ Ir ≈ Ik
+    # Test integral of function without squaring
+    ir = Hankel.integrateR(v, q)
+    ir_c = hquadrature(r -> r*f(r), 0, 1)
+    @test ir_c[1] ≈ ir
 
     q = QDHT(10, 128); A = exp.(-q.r.^2)
     As = symmetric(A, q)
