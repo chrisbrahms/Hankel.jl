@@ -134,6 +134,67 @@ end
     end
 end
 
+@testset "non-zero orders" begin
+    #= Test case from Guizar-Sicairos and Gutierrez-Vega,
+      "Computation of quasi-discrete Hankel transforms of integer order for propagating
+      optical wave fields" =#
+    γ = 5
+    f(r) = sinc(2γ*r)
+    function fk(ν, p)
+        if ν < γ
+            return ν^p * cos(p*π/2) / (2π*γ * sqrt(γ^2 - ν^2)*(γ + sqrt(γ^2 - ν^2))^p)
+        else
+            return sin(p*asin(γ/ν))/(2π*γ*sqrt(ν^2 - γ^2))
+        end
+    end
+
+    R = 3
+    N = 256
+    q1 = QDHT(1, R, N)
+    v = f.(q1.r);
+    vk = q1*v;
+    vka = fk.(q1.k/2π, 1)/2π
+    dynε(ext, est) = 20*log10.(abs.(ext.-est)./maximum(est))
+    @test maximum(dynε(vka, vk)) < -10
+    @test_throws DomainError onaxis(vk, q1)
+    @test integrateR(abs2.(v), q1) ≈ integrateK(abs2.(vk), q1)
+    @test isapprox(integrateR(abs2.(v), q1), hquadrature(r -> r*f(r)^2, 0, 3)[1], rtol=1e-2)
+    
+    
+    q4 = QDHT(4, R, N)
+    v = f.(q4.r);
+    vk = q4*v;
+    vka = fk.(q4.k/2π, 4)/2π
+    dynε(ext, est) = 20*log10.(abs.(ext.-est)./maximum(est))
+    @test maximum(dynε(vka, vk)) < -10
+    @test integrateR(abs2.(v), q4) ≈ integrateK(abs2.(vk), q4)
+    
+    R = 4e-2
+    N = 256
+    w0 = 1e-2
+    a = 2/w0
+    q4 = QDHT(4, R, N)
+    f(r) = exp(-1//2 * a^2 * r^2)
+    fk(k) = 1/a^2 * exp(-k^2/(2*a^2))
+    v = f.(q4.r)
+    vk = q4 * v
+    @test integrateR(abs2.(v), q4) ≈ integrateK(abs2.(vk), q4)
+    # note the high tolerance here is due to the lack of samples close to the axis
+    @test isapprox(integrateR(abs2.(v), q4), hquadrature(r -> r*f(r)^2, 0, R)[1], rtol=1e-2)
+
+    R = 4e-2
+    N = 256
+    w0 = 1e-2
+    a = 2/w0
+    q12 = QDHT(1/2, R, N)
+    f(r) = exp(-1//2 * a^2 * r^2)
+    fk(k) = 1/a^2 * exp(-k^2/(2*a^2))
+    v = f.(q12.r)
+    vk = q12 * v
+    @test integrateR(abs2.(v), q12) ≈ integrateK(abs2.(vk), q12)
+    @test isapprox(integrateR(abs2.(v), q12), hquadrature(r -> r*f(r)^2, 0, R)[1], rtol=1e-3)
+end
+
 @testset "big floats" begin
     R = 4e-2
     N = 256

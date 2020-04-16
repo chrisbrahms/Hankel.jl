@@ -9,10 +9,10 @@ export QDHT, integrateK, integrateR, onaxis, symmetric, Rsymmetric
 const J₀₀ = besselj(0, 0)
 
 """
-    QDHT(R, N; dim=1)
+    QDHT([p, ] R, N; dim=1)
 
-Quasi-discrete Hankel transform over aperture radius `R` with `N` samples which transforms
-along dimension `dim`.
+`p`-th order quasi-discrete Hankel transform over aperture radius `R` with `N` samples
+which transforms along dimension `dim`. If not given, `p` defaults to 0.
 
 After:
 
@@ -34,9 +34,10 @@ To calculate radial integrals of functions sampled using `QDHT`, use [`integrate
 and [`integrateK`](@ref).
 
 The type of the coefficients is inferred from the type of `R` (but is promoted to be at
-least `Float`), so for arbitrary precision use `QDHT(BigFloat(R), ...)`.
+least `Float`), so for arbitrary precision use `QDHT([p, ] BigFloat(R), ...)`.
 """
-struct QDHT{nT<:Real}
+struct QDHT{nT<:Real, pT<:Real}
+    p::pT # Order of the transform
     N::Int # Number of samples
     T::Array{nT, 2} # Transform matrix
     J1sq::Array{nT, 1} # J₁² factors
@@ -49,8 +50,8 @@ struct QDHT{nT<:Real}
     dim::Int # Dimension along which to transform
 end
 
-function QDHT(R, N; dim=1)
-    p = convert(typeof(R), 0)
+function QDHT(p, R, N; dim=1)
+    p = convert(typeof(R), p)
     roots = besselj_zero.(p, 1:N) # type of besselj_zero is inferred from first argument
     S = besselj_zero(p, N+1)
     r = roots .* R/S # real-space vector
@@ -64,8 +65,10 @@ function QDHT(R, N; dim=1)
 
     scaleR = 2/K^2 ./ J₁sq # scale factor for real-space integration
     scaleK = 2/R^2 ./ J₁sq # scale factor for reciprocal-space integration
-    QDHT(N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
+    QDHT(p, N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
 end
+
+QDHT(R, N; dim=1) = QDHT(0, R, N; dim=dim)
 
 "
     mul!(Y, Q::QDHT, A)
@@ -169,6 +172,10 @@ Assuming `A` contains samples of a function `f(r)` at sample points `Q.r`, then
     `integrateR(abs2.(A), q)` and `integrateK(abs2.(q*A), q)` are equal, **but** 
     `integrateR(A, q)` and `integrateK(q*A, q)` are **not** equal.
 
+!!! warning
+    using `integrateR` to integrate a function (i.e. `A` rather than `abs2(A)`) is only
+    supported for the 0th-order QDHT. For more details see [Derivations](@ref).
+
 # Examples
 ```jldoctest
 julia> q = QDHT(10, 128); A = exp.(-q.r.^2/2);
@@ -216,7 +223,11 @@ julia> onaxis(q*A, q) ≈ 1 # should be exp(0) = 1
 true
 ```
 """
-onaxis(Ak, Q::QDHT; dim=Q.dim) = J₀₀ .* integrateK(Ak, Q; dim=dim)
+function onaxis(Ak, Q::QDHT; dim=Q.dim) 
+    Q.p == 0 || throw(
+        DomainError("on-axis samples can only be obtained for 0th-order transforms"))
+    J₀₀ .* integrateK(Ak, Q; dim=dim)
+end
 
 """
     symmetric(A, Q::QDHT)

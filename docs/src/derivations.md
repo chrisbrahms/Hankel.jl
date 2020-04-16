@@ -10,7 +10,7 @@ P(t) = \frac{\epsilon_0 c}{2} \left\lVert E(t, r) \right\rVert\,.
 ```
 When using a `QDHT`, this integral can be approximated by a simple dot product, which is implemented in [`integrateR`](@ref) and [`integrateK`](@ref).
 
-Following eqs. (21)-(24) in Yu et al. we take the integral, expand ``f(r)`` in a Fourier-Bessel series, and use the Hankel transform to obtain the series coefficients:
+In the following, we use the ``0^{\mathrm{th}}``-order QDHT, but the same derivation holds for other orders: ``J_0`` becomes ``J_p`` and ``J_1`` becomes ``J_{p+1}`` Following eqs. (21)-(24) in Yu et al. we take the integral, expand ``f(r)`` in a Fourier-Bessel series, and use the Hankel transform to obtain the series coefficients:
 ```math
 f(r) = \frac{1}{\pi R^2}\sum_{m=1}^M \tilde{f}\left(\frac{j_m}{2\pi R}\right) J_1^{-2}(j_m)J_0\left(\frac{j_m r}{R}\right)\,,
 ```
@@ -60,6 +60,8 @@ S_K(n) = 2R^{-2} J_1^{-2}(j_n)\,.
 ```
 
 ## Integration of functions
+!!! note
+    The following derivation only applies to the ``0^{\mathrm{th}}``-order QDHT, since the identity used for the integral over ``J_0`` cannot be used for higher orders.
 For integration of the form
 ```math
 \int_0^R f(r) r\,\mathrm{d}r\,,
