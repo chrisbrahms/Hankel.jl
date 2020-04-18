@@ -38,7 +38,7 @@ and [`integrateK`](@ref).
 The type of the coefficients is inferred from the type of `R` (but is promoted to be at
 least `Float`), so for arbitrary precision use `QDHT([p, ] BigFloat(R), ...)`.
 """
-struct QDHT{nT<:Real, pT<:Real}
+struct QDHT{nT<:Real, pT<:Real} <: AbstractQDHT{nT}
     p::pT # Order of the transform
     N::Int # Number of samples
     T::Array{nT, 2} # Transform matrix
@@ -138,10 +138,7 @@ julia> q*A
  -6.07681871673291e-13
 ```
 """
-function *(Q::QDHT, A)
-    out = similar(A)
-    mul!(out, Q, A)
-end
+*(::QDHT, ::Any)
 
 """
     \\(Q::QDHT, A)
@@ -156,10 +153,7 @@ julia> q \\ Ak ≈ A
 true
 ```
 """
-function \(Q::QDHT, A)
-    out = similar(A)
-    ldiv!(out, Q, A)
-end
+\(::QDHT, ::Any)
 
 """
     integrateR(A, Q::QDHT; dim=1)
@@ -185,7 +179,7 @@ julia> integrateR(abs2.(A), q) ≈ 0.5 # analytical solution of ∫exp(-r²)r dr
 true
 ```
 """
-integrateR(A, Q::QDHT; dim=1) = dimdot(Q.scaleR, A; dim=dim)
+integrateR(::Any, ::QDHT)
 
 """
     integrateK(Ak, Q::QDHT; dim=1)
@@ -211,7 +205,7 @@ true
 
 ```
 """
-integrateK(Ak, Q::QDHT; dim=1) = dimdot(Q.scaleK, Ak; dim=dim)
+integrateK(::Any, ::QDHT)
 
 """
     onaxis(Ak, Q::QDHT; dim=Q.dim)
@@ -253,18 +247,7 @@ julia> As[130:end] == A
 true
 ```
 """
-function symmetric(A, Q::QDHT; dim=Q.dim)
-    s = collect(size(A))
-    N = s[Q.dim]
-    s[Q.dim] = 2N + 1
-    out = Array{eltype(A)}(undef, Tuple(s))
-    idxlo = CartesianIndices(size(A)[1:Q.dim-1])
-    idxhi = CartesianIndices(size(A)[Q.dim+1:end])
-    out[idxlo, 1:N, idxhi] .= A[idxlo, N:-1:1, idxhi]
-    out[idxlo, N+1, idxhi] .= squeeze(onaxis(Q*A, Q), dims=Q.dim)
-    out[idxlo, (N+2):(2N+1), idxhi] .= A[idxlo, :, idxhi]
-    return out
-end
+symmetric(::Any, ::QDHT)
 
 """
     squeeze(A; dims)
@@ -302,7 +285,7 @@ julia> Rsymmetric(q)
   7.8973942990196395
 ```
 """
-Rsymmetric(Q::QDHT) = vcat(-Q.r[end:-1:1], 0, Q.r)
+Rsymmetric(::QDHT)
 
 """
     oversample(A, Q::QDHT; factor::Int=4)
@@ -318,18 +301,11 @@ same shape in space but with more samples.
     Unlike in zero-padding using FFTs, the old and oversampled **spatial** grids do not
     have any sampling points in common.
 """
-function oversample(A, Q::QDHT; factor::Int=4)
-    factor == 1 && (return A, Q)
-    QNew = QDHT(Q.R, factor*Q.N, dim=Q.dim)
-    @assert all(QNew.k[1:Q.N] .≈ Q.k)
-    Ak = Q * A
-    shape = collect(size(A))
-    shape[Q.dim] = QNew.N
-    Ako = zeros(eltype(A), Tuple(shape))
-    idxlo = CartesianIndices(size(Ako)[1:Q.dim - 1])
-    idxhi = CartesianIndices(size(Ako)[Q.dim + 1:end])
-    Ako[idxlo, 1:Q.N, idxhi] .= Ak
-    return QNew \ Ako, QNew
+oversample(::Any, ::QDHT)
+
+function oversample(Q::QDHT; factor::Int=4)
+    factor == 1 && return Q
+    return QDHT(Q.p, Q.R, factor*Q.N, dim=Q.dim)
 end
 
 """
