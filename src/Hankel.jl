@@ -6,6 +6,8 @@ import Base: *, \
 
 export QDHT, integrateK, integrateR, onaxis, symmetric, Rsymmetric
 
+include("plan.jl")
+
 const J₀₀ = besselj(0, 0)
 
 """
