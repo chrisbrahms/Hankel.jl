@@ -43,9 +43,8 @@ function QDSHT(p, n, R, N; dim = 1)
     r = roots .* R / S # real-space vector
     K = S / R # Highest spatial frequency
     k = roots .* K / S # Spatial frequency vector
-    j₁ = abs.(sphbesselj.(p + 1, n, roots))
-    j₁sq = j₁ .* j₁
-    T = 2 * cn / S^((n + 1) / 2) * sphbesselj.(p, n, (roots * roots') ./ S) ./ j₁sq' # Transform matrix
+    j₁sq = abs2.(sphbesselj.(p + 1, n, roots))
+    T = 2 * cn * S^(-(n + 1) / 2) * sphbesselj.(p, n, (roots .* roots') ./ S) ./ j₁sq' # Transform matrix
 
     K, R = promote(K, R) # deal with R::Int
 
@@ -169,7 +168,8 @@ true
 function onaxis(Ak, Q::QDSHT; dim = Q.dim)
     Q.p == 0 ||
     throw(DomainError("on-axis samples can only be obtained for 0th-order transforms"))
-    return integrateK(Ak, Q; dim = dim) ./ gamma((Q.n + 1) / 2) / 2^((Q.n - 1) / 2)
+    j00ocn = inv(gamma((Q.n + 1) / 2) * 2^((Q.n - 1) / 2))
+    return j00ocn .* integrateK(Ak, Q; dim = dim)
 end
 
 function oversample(Q::QDSHT; factor::Int = 4)
