@@ -119,16 +119,15 @@ dynε(ext, est) = 20 * log10.(abs.(ext .- est) ./ maximum(abs.(est)))
         end
 
         @testset "f(r) = exp(-a²r²/2)cos(16ar)" begin
-            R = 4e-2
+            R = 1e-2
             N = 256
             q = Hankel.QDSHT(R, N)
             w0 = 5e-3
             a = 2 / w0
             f(r) = exp(-1 // 2 * a^2 * r^2) * cos(16 * a * r)
             test_transform(q, f; atol = 1e-10, quad = false)
-            test_l2norm(q, f; atol = 1e-20)
-            # quadrature takes too long here
-            # test_integrate(q, f; quad = false, atol=1e-20)
+            test_l2norm(q, f; atol = 1e-15)
+            test_integrate(q, f; atol = 1e-10)
         end
     end
 
