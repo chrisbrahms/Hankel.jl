@@ -166,8 +166,9 @@ true
 ```
 """
 function onaxis(Ak, Q::QDSHT; dim = Q.dim)
-    Q.p == 0 ||
-    throw(DomainError("on-axis samples can only be obtained for 0th-order transforms"))
+    if Q.p != 0
+        throw(DomainError("on-axis samples can only be obtained for 0th-order transforms"))
+    end
     j00ocn = inv(gamma((Q.n + 1) / 2) * 2^((Q.n - 1) / 2))
     return j00ocn .* integrateK(Ak, Q; dim = dim)
 end
