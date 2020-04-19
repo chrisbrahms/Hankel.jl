@@ -229,6 +229,32 @@ end
         end
     end
 
+    @testset "QDSHT === QDHT when n = 1" begin
+        @testset "p=$p" for p in (0, 1 / 2, 1, 2, 3, 4)
+            R = 1.0
+            N = 256
+            q = QDSHT(p, 1, R, N)
+            qht = QDHT(p, R, N)
+            f(r) = exp(-100 / 2 * r^2)
+            @test q.r ≈ qht.r
+            @test q.k ≈ qht.k
+            @test q.T ≈ qht.T
+            @test q.scaleR ≈ qht.scaleR
+            @test q.scaleK ≈ qht.scaleK
+            @test q.j1sq ≈ qht.J1sq
+            v = f.(q.r)
+            vk = q * v
+            @test vk ≈ qht * v
+            @test q \ vk ≈ qht \ vk
+            @test integrateR(abs2.(v), q) ≈ integrateR(abs2.(v), qht)
+            @test integrateK(abs2.(vk), q) ≈ integrateK(abs2.(vk), qht)
+            if p == 0
+                @test integrateR(v, q) ≈ integrateR(v, qht)
+                @test integrateK(vk, q) ≈ integrateK(vk, qht)
+            end
+        end
+    end
+
     @testset "big floats" begin
         # SpecialFunctions currently does not allow besselj(::BigFloat, ::Complex{BigFloat})
         @test_throws MethodError QDSHT(BigFloat(0), 128)
