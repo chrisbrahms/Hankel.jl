@@ -82,6 +82,8 @@ function test_integrate(q::QDSHT, f; Ifr = nothing, quad = true, kwargs...)
     return nothing
 end
 
+dynε(ext, est) = 20*log10.(abs.(ext.-est)./maximum(abs.(est)))
+
 @testset "QDSHT" begin
     @testset "transform" begin
         @testset "f(r) = exp(-a²r²/2)" begin
@@ -118,6 +120,52 @@ end
             test_l2norm(q, f; atol=1e-20)
             # quadrature takes too long here
             # test_integrate(q, f; quad = false, atol=1e-20)
+        end
+    end
+
+    @testset "non-zero orders" begin
+        #= Test case from Guizar-Sicairos and Gutierrez-Vega,
+          "Computation of quasi-discrete Hankel transforms of integer order for propagating
+          optical wave fields" =#
+        # Adapted from Gradshteyn and Ryzhik 6.671.1
+        @testset "p=$p, n=$n" for p in (1, 1/2, 2, 3), n in (1, 2, 3)
+            γ = 5
+            f(r) = r^(-(n + 1)/2) * sin(2π*γ*r)
+            function fk(k)
+                s = p + (n - 1) / 2
+                if k < 2π*γ
+                    return k^s * cos(s*π/2) / sqrt(4π^2*γ^2 - k^2) / (2π*γ + sqrt(4π^2*γ^2 - k^2))^s / k^((n - 1)/2)
+                else
+                    return sin(s*asin(2π*γ/k))/sqrt(k^2 - 4π^2*γ^2)/k^((n - 1)/2)
+                end
+            end
+
+            R = 1
+            N = 256
+            q1 = QDSHT(p, n, R, N)
+            v = f.(q1.r);
+            vk = q1*v;
+            vka = fk.(q1.k)
+            err = dynε(vka, vk)
+            i = findlast(ki -> ki < 2π*γ, q1.k) # find point flanking discontinuity
+            @test maximum(dynε(vka, vk)[[1:i-1; i+2:end]]) < -10
+            # @test_throws DomainError onaxis(vk, q1)
+            @test integrateR(abs2.(v), q1) ≈ integrateK(abs2.(vk), q1)
+            # curve is too steep for quadrature, so compare with integral computed with
+            # Mathematica
+            @test isapprox(integrateR(abs2.(v), q1), 2.358965372, rtol=1e-2)
+
+            R = 4e-2
+            N = 256
+            w0 = 1e-2
+            a = 2/w0
+            q4 = QDSHT(p, n, R, N)
+            g(r) = exp(-1//2 * a^2 * r^2)
+            v = g.(q4.r)
+            vk = q4 * v
+            @test integrateR(abs2.(v), q4) ≈ integrateK(abs2.(vk), q4)
+            # note the high tolerance here is due to the lack of samples close to the axis
+            @test isapprox(integrateR(abs2.(v), q4), quad_integrate(q4, abs2 ∘ g), rtol=1e-2)
         end
     end
 
