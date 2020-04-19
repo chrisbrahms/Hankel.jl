@@ -131,12 +131,12 @@ dynε(ext, est) = 20 * log10.(abs.(ext .- est) ./ maximum(abs.(est)))
         end
     end
 
-    @testset "non-zero orders" begin
-        #= Test case from Guizar-Sicairos and Gutierrez-Vega,
-          "Computation of quasi-discrete Hankel transforms of integer order for propagating
-          optical wave fields" =#
-        # Adapted from Gradshteyn and Ryzhik 6.671.1
-        @testset "p=$p, n=$n" for p in (1, 1 / 2, 2, 3), n in (1, 2, 3)
+    @testset "multiple orders/spherical dimensions" begin
+        @testset "p=$p, n=$n" for p in (0, 1 / 2, 1, 2, 3), n in (1, 2, 3)
+            #= Test case from Guizar-Sicairos and Gutierrez-Vega,
+              "Computation of quasi-discrete Hankel transforms of integer order for propagating
+              optical wave fields" =#
+            # Adapted from Gradshteyn and Ryzhik 6.671.1
             γ = 5
             f(r) = r^(-(n + 1) / 2) * sin(2π * γ * r)
             function fk(k)
