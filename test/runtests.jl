@@ -1,6 +1,6 @@
 import Test: @test, @test_throws, @testset
 using Hankel
-import LinearAlgebra: diagm, mul!
+import LinearAlgebra: diagm, mul!, ldiv!
 import SpecialFunctions: besselj
 import HCubature: hquadrature
 
@@ -50,3 +50,4 @@ end
 end
 
 include("qdht.jl")
+include("qdsht.jl")
