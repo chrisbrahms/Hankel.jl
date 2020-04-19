@@ -1,7 +1,7 @@
 import Test: @test, @test_throws, @testset
 using Hankel
 import LinearAlgebra: diagm, mul!, ldiv!
-import SpecialFunctions: besselj
+import SpecialFunctions: besseli, besselix, besselj
 import HCubature: hquadrature
 
 # Brute-force equivalent of Hankel.dot! - slow but certain to be correct

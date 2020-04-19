@@ -93,6 +93,27 @@ end
 
 dynε(ext, est) = 20 * log10.(abs.(ext .- est) ./ maximum(abs.(est)))
 
+logbesseli(ν, x) = x > one(x) ? log(besselix(ν, x)) + x : log(besseli(ν, x))
+
+# log(I_ν(x) / x^ν), approaches -log(2^ν * γ(ν + 1)) as x → 0
+logbesselirat(ν, x) = logbesseli(ν, x) - ν * log(x)
+
+# pdf of non-central chi distribution reparameterized with location μ and scale σ
+function pdf_ncchi(r, μ, σ, n)
+    ν = n + 1
+    x = r / σ
+    λ = μ / σ
+    logJ = -log(σ) # log derivative of f: z → r
+    logpdf = -(x^2 + λ^2) / 2 + logbesselirat(ν / 2 - 1, λ * x) + logJ
+    return exp(logpdf)
+end
+
+# transform of pdf_ncchi. Adapted from Gradshteyn and Ryzhik 6.633.2.
+function trans_pdf_ncchi(k, μ, σ, n, p)
+    cninv = 1 / Hankel.sphbesselj_scale(n)
+    return cninv * exp(-σ^2 / 2 * k^2) * Hankel.sphbesselj(p, n, μ * k)
+end
+
 @testset "QDSHT" begin
     @testset "transform" begin
         @testset "f(r) = exp(-a²r²/2)" begin
@@ -128,6 +149,17 @@ dynε(ext, est) = 20 * log10.(abs.(ext .- est) ./ maximum(abs.(est)))
             test_transform(q, f; atol = 1e-10, quad = false)
             test_l2norm(q, f; atol = 1e-15)
             test_integrate(q, f; atol = 1e-10)
+        end
+
+        @testset "pdf non-central chi" begin
+            R = 30
+            N = 256
+            q = Hankel.QDSHT(R, N)
+            f(r) = pdf_ncchi(r, 10, 1, q.n)
+            fk(k) = trans_pdf_ncchi(k, 10, 1, q.n, q.p)
+            test_transform(q, f; fk = fk, atol = 2e-12, quad = false)
+            test_l2norm(q, f; quad = true, atol = 1e-15)
+            test_integrate(q, f; Ifr = _ -> 1, quad = false, atol = 1e-15)
         end
     end
 
@@ -180,6 +212,20 @@ dynε(ext, est) = 20 * log10.(abs.(ext .- est) ./ maximum(abs.(est)))
                 quad_integrate(q4, abs2 ∘ g),
                 rtol = 1e-2,
             )
+
+            @testset "pdf non-central chi" begin
+                R = 30
+                N = 256
+                q5 = Hankel.QDSHT(p, n, R, N)
+                h(r) = pdf_ncchi(r, 10, 1, n)
+                hk(k) = trans_pdf_ncchi(k, 10, 1, n, p)
+
+                v = h.(q5.r)
+                vk = q5 * v
+                vka = hk.(q5.k)
+                @test maximum(dynε(vka, vk)) < -10
+                @test integrateR(abs2.(v), q5) ≈ integrateK(abs2.(vk), q5)
+            end
         end
     end
 
