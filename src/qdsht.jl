@@ -154,6 +154,24 @@ true
 """
 integrateK(::Any, ::QDSHT)
 
+"""
+    onaxis(Ak, Q::QDSHT; dim=Q.dim)
+
+Calculate on-axis sample in space (i.e. at r=0) from transformed array `Ak`.
+
+# Examples
+```jldoctest
+julia> q = QDSHT(10, 128); A = exp.(-q.r.^2/2);
+julia> onaxis(q*A, q) ≈ 1 # should be exp(0) = 1
+true
+```
+"""
+function onaxis(Ak, Q::QDSHT; dim = Q.dim)
+    Q.p == 0 ||
+    throw(DomainError("on-axis samples can only be obtained for 0th-order transforms"))
+    return integrateK(Ak, Q; dim = dim) ./ gamma((Q.n + 1) / 2) / 2^((Q.n - 1) / 2)
+end
+
 function oversample(Q::QDSHT; factor::Int = 4)
     factor == 1 && return Q
     return QDSHT(Q.p, Q.n, Q.R, factor * Q.N, dim = Q.dim)

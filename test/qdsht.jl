@@ -128,6 +128,9 @@ end
             test_transform(q, f; fk = fk, atol = 1e-9)
             test_l2norm(q, f; atol = 1e-20)
             test_integrate(q, f; atol = 1e-20)
+            f0 = f(0)
+            f0q = Hankel.onaxis(q * f.(q.r), q)
+            @test f0 ≈ f0q
 
             v = f.(q.r)
             vk = q * v
@@ -137,6 +140,18 @@ end
                 v2dk = q2d * v2d
                 @test all([all(v2dk[ii, :] ≈ vk) for ii in 1:size(v2dk, 1)])
             end
+        end
+
+        @testset "f(r) = sinc(100r)²" begin
+            R = 4e-2
+            N = 256
+            q = Hankel.QDHT(R, N)
+            f2(r) = sinc(100 * r)^2
+            v = f2.(q.r)
+            vk = q * v
+            f0 = f2(0)
+            f0q = Hankel.onaxis(vk, q)
+            @test f0 ≈ f0q
         end
 
         @testset "f(r) = exp(-a²r²/2)cos(16ar)" begin
@@ -160,6 +175,25 @@ end
             test_transform(q, f; fk = fk, atol = 2e-12, quad = false)
             test_l2norm(q, f; quad = true, atol = 1e-15)
             test_integrate(q, f; Ifr = _ -> 1, quad = false, atol = 1e-15)
+        end
+    end
+
+    @testset "symmetric" begin
+        q = QDSHT(10, 128)
+        A = exp.(-q.r.^2)
+        As = symmetric(A, q)
+        @test length(As) == 2*length(A)+1
+        @test As[1:128] == A[128:-1:1]
+        @test As[129] ≈ 1
+        @test As[130:end] == A
+
+        AA = hcat(A, A)
+        AAs = symmetric(AA, q; dim=1)
+        @test size(AAs, 1) == 2*length(A)+1
+        for i=1:2
+            @test AAs[1:128, i] == A[128:-1:1]
+            @test AAs[129, i] ≈ 1
+            @test AAs[130:end, i] == A
         end
     end
 
@@ -191,7 +225,9 @@ end
             err = dynε(vka, vk)
             i = findlast(ki -> ki < 2π * γ, q1.k) # find point flanking discontinuity
             @test maximum(dynε(vka, vk)[[1:(i - 1); (i + 2):end]]) < -10
-            # @test_throws DomainError onaxis(vk, q1)
+            if p != 0
+                @test_throws DomainError onaxis(vk, q1)
+            end
             @test integrateR(abs2.(v), q1) ≈ integrateK(abs2.(vk), q1)
             # curve is too steep for quadrature, so compare with integral computed with
             # Mathematica
@@ -273,7 +309,7 @@ end
         @test qo.N == 4 * q.N
         @test all(isapprox(vo, f.(qo.r), rtol = 1e-13))
         @test integrateR(abs2.(v), q) ≈ integrateR(abs2.(vo), qo)
-        # @test f(0) ≈ onaxis(qo*vo, qo)
+        @test f(0) ≈ onaxis(qo * vo, qo)
 
         v2 = hcat(v, v)
         vo, qo = Hankel.oversample(v2, q, factor = 4)
