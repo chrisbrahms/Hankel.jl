@@ -6,7 +6,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-FunctionZeros = "0.1"
+FunctionZeros = "0.1, 0.2"
 HCubature = "1.4"
 SpecialFunctions = "0.10"
 julia = "1"
