@@ -287,7 +287,13 @@ end
             if p == 0
                 @test integrateR(v, q) ≈ integrateR(v, qht)
                 @test integrateK(vk, q) ≈ integrateK(vk, qht)
+                @test Hankel.onaxis(vk, q) ≈ Hankel.onaxis(vk, qht) ≈ f(0)
             end
+            qos = Hankel.oversample(q)
+            qhtos = Hankel.oversample(qht)
+            @test qos.N == qhtos.N
+            @test qos.r ≈ qhtos.r
+            @test qos.k ≈ qhtos.k
         end
     end
 
