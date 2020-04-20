@@ -37,6 +37,7 @@ struct QDHT{nT<:Real, pT<:Real} <: AbstractQDHT{nT}
     r::Vector{nT} # Real-space grid
     scaleR::Vector{nT} # Scale factor for real-space integration
     scaleK::Vector{nT} # Scale factor for frequency-space integration
+    scaleRK::nT # Scalar factor multiplied/divided during fwd/rev transform
     dim::Int # Dimension along which to transform
 end
 
@@ -55,7 +56,8 @@ function QDHT(p, R, N; dim=1)
 
     scaleR = 2/K^2 ./ J₁sq # scale factor for real-space integration
     scaleK = 2/R^2 ./ J₁sq # scale factor for reciprocal-space integration
-    QDHT(p, N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
+    scaleRK = R / K
+    QDHT(p, N, T, J₁sq, K, k, R, r, scaleR, scaleK, scaleRK, dim)
 end
 
 QDHT(R, N; dim=1) = QDHT(0, R, N; dim=dim)
@@ -81,10 +83,7 @@ julia> mul!(Y, q, A)
  -6.07681871673291e-13
 ```
 "
-function mul!(Y, Q::QDHT, A)
-    dot!(Y, Q.T, A, dim=Q.dim)
-    Y .*= Q.R/Q.K
-end
+mul!(::Any, ::QDHT, ::Any)
 
 "
     ldiv!(Y, Q::QDHT, A)
@@ -101,10 +100,7 @@ julia> YY ≈ A
 true
 ```
 "
-function ldiv!(Y, Q::QDHT, A)
-    dot!(Y, Q.T, A, dim=Q.dim)
-    Y .*= Q.K/Q.R
-end
+ldiv!(::Any, ::QDHT, ::Any)
 
 """
     *(Q::QDHT, A)

@@ -17,6 +17,16 @@ end
 
 abstract type AbstractQDHT{nT<:Real} <: Plan end
 
+function mul!(Y, Q::AbstractQDHT, A)
+    dot!(Y, Q.T, A, dim=Q.dim)
+    Y .*= Q.scaleRK
+end
+
+function ldiv!(Y, Q::AbstractQDHT, A)
+    dot!(Y, Q.T, A, dim=Q.dim)
+    Y ./= Q.scaleRK
+end
+
 integrateR(A, Q::AbstractQDHT; dim = 1) = dimdot(Q.scaleR, A; dim = dim)
 
 integrateK(Ak, Q::AbstractQDHT; dim = 1) = dimdot(Q.scaleK, Ak; dim = dim)
