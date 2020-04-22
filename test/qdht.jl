@@ -1,11 +1,15 @@
 @testset "QDHT" begin
     @testset "constructors" begin
         q = QDHT(1.0, 10)
-        @test q isa QDHT{0,Float64}
+        @test q isa QDHT{0,1,Float64}
         q = QDHT{1}(1.0, 10)
-        @test q isa QDHT{1,Float64}
+        @test q isa QDHT{1,1,Float64}
         q = QDHT(2, 1.0, 10)
-        @test q isa QDHT{2,Float64}
+        @test q isa QDHT{2,1,Float64}
+        q = QDHT{1, 2}(1.0, 10)
+        @test q isa QDHT{1,2,Float64}
+        q = QDHT(1, 2, 1.0, 10)
+        @test q isa QDHT{1,2,Float64}
     end
 
     @testset "transform" begin

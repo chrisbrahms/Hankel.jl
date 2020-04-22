@@ -1,9 +1,11 @@
 """
-    QDHT{p}(R, N; dim=1)
+    QDHT{p, n}(R, N; dim=1)
     QDHT([p, ] R, N; dim=1)
+    QDHT(p, [n, ] R, N; dim=1)
 
 `p`-th order quasi-discrete Hankel transform over aperture radius `R` with `N` samples
-which transforms along dimension `dim`. If not given, `p` defaults to 0.
+which transforms along dimension `dim`. If not given, `p` defaults to 0, and `n` defaults
+to 1.
 
 After:
 
@@ -27,7 +29,7 @@ and [`integrateK`](@ref).
 The type of the coefficients is inferred from the type of `R` (but is promoted to be at
 least `Float`), so for arbitrary precision use `QDHT([p, ] BigFloat(R), ...)`.
 """
-struct QDHT{p, T<:Real}
+struct QDHT{p, n, T<:Real}
     N::Int # Number of samples
     T::Array{T, 2} # Transform matrix
     J1sq::Array{T, 1} # J₁² factors
@@ -40,7 +42,7 @@ struct QDHT{p, T<:Real}
     dim::Int # Dimension along which to transform
 end
 
-function QDHT{p}(R, N; dim=1) where {p}
+function QDHT{p, n}(R, N; dim=1) where {p, n}
     pf, R = float.(promote(p, R))
     roots = besselj_zero.(pf, 1:N) # type of besselj_zero is inferred from first argument
     S = besselj_zero(pf, N+1)
@@ -53,11 +55,13 @@ function QDHT{p}(R, N; dim=1) where {p}
 
     scaleR = 2/K^2 ./ J₁sq # scale factor for real-space integration
     scaleK = 2/R^2 ./ J₁sq # scale factor for reciprocal-space integration
-    QDHT{p, eltype(T)}(N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
+    QDHT{p, n, eltype(T)}(N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
 end
 
+QDHT{p}(R, N; dim=1) where {p} = QDHT{p, 1}(R, N; dim=dim)
 QDHT(R, N; dim=1) = QDHT{0}(R, N; dim=dim)
 QDHT(p, R, N; dim=1) = QDHT{p}(R, N; dim=dim)
+QDHT(p, n, R, N; dim=1) = QDHT{p, n}(R, N; dim=dim)
 
 "
     mul!(Y, Q::QDHT, A)
