@@ -16,8 +16,8 @@ After:
 but with some alterations:
 
 The transform matrix T is not the same as C/T defined in [1, 2].
-Instead of dividing by J₁(αₚₙ)J₁(αₚₘ) we divide by J₁(αₚₙ)^2. This cancels out
-the factor between f and F so we do not have to mutltiply (divide) by J₁(αₚₙ) (J₁(αₚₘ)) before
+Instead of dividing by j₁(αₚₙ)j₁(αₚₘ) we divide by j₁(αₚₙ)^2. This cancels out
+the factor between f and F so we do not have to mutltiply (divide) by j₁(αₚₙ) (j₁(αₚₘ)) before
 and after applying the transform matrix.
 
 Follows [`AbstractFFT`](https://github.com/JuliaMath/AbstractFFTs.jl) approach of applying
@@ -32,7 +32,7 @@ least `Float`), so for arbitrary precision use `QDHT([p, ] BigFloat(R), ...)`.
 struct QDHT{p, n, T<:Real}
     N::Int # Number of samples
     T::Array{T, 2} # Transform matrix
-    J1sq::Array{T, 1} # J₁² factors
+    j1sq::Array{T, 1} # (j₁)² factors
     K::T # Highest spatial frequency
     k::Vector{T} # Spatial frequency grid
     R::T # Aperture size (largest real-space coordinate)
@@ -44,18 +44,18 @@ end
 
 function QDHT{p, n}(R, N; dim=1) where {p, n}
     pf, R = float.(promote(p, R))
-    roots = besselj_zero.(pf, 1:N) # type of besselj_zero is inferred from first argument
-    S = besselj_zero(pf, N+1)
+    roots = sphbesselj_zero.(pf, n, 1:N) # type of sphbesselj_zero is inferred from first argument
+    S = sphbesselj_zero(pf, n, N+1)
     r = roots .* R/S # real-space vector
     K = S/R # Highest spatial frequency
     k = roots .* K/S # Spatial frequency vector
-    J₁ = abs.(besselj.(p+1, roots))
-    J₁sq = J₁ .* J₁
-    T = 2/S * besselj.(p, (roots * roots')./S)./J₁sq' # Transform matrix
+    j₁ = abs.(sphbesselj.(p+1, n, roots))
+    j₁sq = j₁ .* j₁
+    T = 2/S * sphbesselj.(p, n, (roots * roots')./S)./j₁sq' # Transform matrix
 
-    scaleR = 2/K^2 ./ J₁sq # scale factor for real-space integration
-    scaleK = 2/R^2 ./ J₁sq # scale factor for reciprocal-space integration
-    QDHT{p, n, eltype(T)}(N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
+    scaleR = 2/K^2 ./ j₁sq # scale factor for real-space integration
+    scaleK = 2/R^2 ./ j₁sq # scale factor for reciprocal-space integration
+    QDHT{p, n, eltype(T)}(N, T, j₁sq, K, k, R, r, scaleR, scaleK, dim)
 end
 
 QDHT{p}(R, N; dim=1) where {p} = QDHT{p, 1}(R, N; dim=dim)
