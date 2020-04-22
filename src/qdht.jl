@@ -54,8 +54,8 @@ function QDHT{p, n}(R, N; dim=1) where {p, n}
     j₁sq = abs2.(sphbesselj.(p+1, n, roots))
     T = 2 * cn * S^(-(n + 1) / 2) * sphbesselj.(p, n, (roots .* roots') ./ S) ./ j₁sq' # Transform matrix
 
-    scaleR = 2/K^2 ./ j₁sq # scale factor for real-space integration
-    scaleK = 2/R^2 ./ j₁sq # scale factor for reciprocal-space integration
+    scaleR = 2 * cn^2 / K^(n + 1) ./ j₁sq # scale factor for real-space integration
+    scaleK = 2 * cn^2 / R^(n + 1) ./ j₁sq # scale factor for reciprocal-space integration
     scaleRK = (R / K) ^ ((n + 1) / 2)
     QDHT{p, n, eltype(T)}(N, T, j₁sq, K, k, R, r, scaleR, scaleK, scaleRK, dim)
 end
