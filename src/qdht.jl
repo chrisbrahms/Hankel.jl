@@ -56,7 +56,7 @@ function QDHT{p}(R, N; dim=1) where {p}
     QDHT{p, eltype(T)}(N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
 end
 
-QDHT(R, N; dim=1) where {p} = QDHT{0}(R, N; dim=dim)
+QDHT(R, N; dim=1) = QDHT{0}(R, N; dim=dim)
 QDHT(p, R, N; dim=1) = QDHT{p}(R, N; dim=dim)
 
 "
