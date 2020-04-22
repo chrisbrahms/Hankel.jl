@@ -39,23 +39,25 @@ struct QDHT{p, n, T<:Real}
     r::Vector{T} # Real-space grid
     scaleR::Vector{T} # Scale factor for real-space integration
     scaleK::Vector{T} # Scale factor for frequency-space integration
+    scaleRK::T # Scalar factor multiplied/divided during fwd/rev transform
     dim::Int # Dimension along which to transform
 end
 
 function QDHT{p, n}(R, N; dim=1) where {p, n}
     pf, R = float.(promote(p, R))
+    cn = convert(typeof(R), sphbesselj_scale(n))
     roots = sphbesselj_zero.(pf, n, 1:N) # type of sphbesselj_zero is inferred from first argument
     S = sphbesselj_zero(pf, n, N+1)
     r = roots .* R/S # real-space vector
     K = S/R # Highest spatial frequency
     k = roots .* K/S # Spatial frequency vector
-    j₁ = abs.(sphbesselj.(p+1, n, roots))
-    j₁sq = j₁ .* j₁
-    T = 2/S * sphbesselj.(p, n, (roots * roots')./S)./j₁sq' # Transform matrix
+    j₁sq = abs2.(sphbesselj.(p+1, n, roots))
+    T = 2 * cn * S^(-(n + 1) / 2) * sphbesselj.(p, n, (roots .* roots') ./ S) ./ j₁sq' # Transform matrix
 
     scaleR = 2/K^2 ./ j₁sq # scale factor for real-space integration
     scaleK = 2/R^2 ./ j₁sq # scale factor for reciprocal-space integration
-    QDHT{p, n, eltype(T)}(N, T, j₁sq, K, k, R, r, scaleR, scaleK, dim)
+    scaleRK = (R / K) ^ ((n + 1) / 2)
+    QDHT{p, n, eltype(T)}(N, T, j₁sq, K, k, R, r, scaleR, scaleK, scaleRK, dim)
 end
 
 QDHT{p}(R, N; dim=1) where {p} = QDHT{p, 1}(R, N; dim=dim)
@@ -86,7 +88,7 @@ julia> mul!(Y, q, A)
 "
 function mul!(Y, Q::QDHT, A)
     dot!(Y, Q.T, A, dim=Q.dim)
-    Y .*= Q.R/Q.K
+    Y .*= Q.scaleRK
 end
 
 "
@@ -106,7 +108,7 @@ true
 "
 function ldiv!(Y, Q::QDHT, A)
     dot!(Y, Q.T, A, dim=Q.dim)
-    Y .*= Q.K/Q.R
+    Y ./= Q.scaleRK
 end
 
 """
@@ -216,7 +218,11 @@ julia> onaxis(q*A, q) ≈ 1 # should be exp(0) = 1
 true
 ```
 """
-onaxis(Ak, Q::QDHT{0}; dim=Q.dim) = J₀₀ .* integrateK(Ak, Q; dim=dim)
+function onaxis(Ak, Q::QDHT{0,n}; dim = Q.dim) where {n}
+    j00ocn = inv(gamma((n + 1) / 2) * 2^((n - 1) / 2))
+    return j00ocn .* integrateK(Ak, Q; dim = dim)
+end
+onaxis(Ak, Q::QDHT{0,1}; dim=Q.dim) = J₀₀ .* integrateK(Ak, Q; dim=dim)
 
 """
     symmetric(A, Q::QDHT)
