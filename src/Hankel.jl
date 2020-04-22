@@ -1,6 +1,6 @@
 module Hankel
 import FunctionZeros: besselj_zero
-import SpecialFunctions: besselj
+import SpecialFunctions: besselj, gamma
 import LinearAlgebra: mul!, ldiv!, dot
 import Base: *, \
 

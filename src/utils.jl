@@ -101,3 +101,42 @@ function _dimdot!(out, v, A, idxlo, idxhi)
         end
     end
 end
+
+sphbesselj_scale(n) = isodd(n) ? 1.0 : √(π / 2)
+
+"""
+    sphbesselj(p, n, x)
+(Hyper)spherical Bessel function of order ``p`` and spherical dimension ``n``.
+The hyperspherical Bessel function generalizes the cylindrical and spherical Bessel
+functions to the ``n``-sphere (embedded in ``ℝ^{n+1}``). It is given as
+```math
+j_p^{n}(x) = c_n x^{-(n-1)/2} J_{p + (n-1)/2}(x),
+```
+where ``c_n = \\sqrt{\\frac{π}{2}}`` for even ``n`` and 1 otherwise.
+After:
+[1] J. S. Avery, J. E. Avery. Hyperspherical Harmonics And Their Physical Applications.
+    Singapore: World Scientific Publishing Company, 2017.
+"""
+function sphbesselj(p, n, x)
+    α = (n - 1) / 2
+    Jppa = besselj(p + α, x)
+    cn = sphbesselj_scale(n)
+    if abs(x) ≤ sqrt(eps(real(zero(Jppa))))
+        if p == 0
+            J0pa = cn / gamma(α + 1) / 2^α
+            return convert(typeof(Jppa), J0pa)
+        else
+            return zero(Jppa)
+        end
+    end
+    jp = cn * Jppa / x^α
+    return convert(typeof(Jppa), jp)
+end
+
+"""
+    sphbesselj_zero(p, n, m)
+Get the ``m``th zero of the (hyper)spherical Bessel function of order ``p`` and spherical
+dimension ``n``.
+See [`sphbesselj`](@ref).
+"""
+sphbesselj_zero(p, n, m) = besselj_zero(p + (n - 1) / 2, m)
