@@ -73,7 +73,7 @@ and store the result in `Y`.
 
 # Examples
 ```jldoctest
-julia> q = QDHT(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R)); Y = similar(A);
+julia> q = QDHT{0, 1}(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R)); Y = similar(A);
 julia> mul!(Y, q, A)
 8-element Array{Float64,1}:
   4.326937831591551e-6
@@ -99,7 +99,7 @@ and store the result in `Y`.
 
 # Examples
 ```jldoctest
-julia> q = QDHT(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R)); Y = similar(A);
+julia> q = QDHT{0, 1}(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R)); Y = similar(A);
 julia> mul!(Y, q, A);
 julia> YY = similar(Y); ldiv!(YY, q, Y);
 julia> YY ≈ A
@@ -118,7 +118,7 @@ Calculate the forward quasi-discrete Hankel transform of array `A` using the QDH
 
 # Examples
 ```jldoctest
-julia> q = QDHT(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R));
+julia> q = QDHT{0, 1}(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R));
 julia> q*A
 8-element Array{Float64,1}:
   4.326937831591551e-6
@@ -143,7 +143,7 @@ Calculate the inverse quasi-discrete Hankel transform of array `A` using the QDH
 
 # Examples
 ```jldoctest
-julia> q = QDHT(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R));
+julia> q = QDHT{0, 1}(1e-2, 8); A = exp.(-q.r.^2/(1e-3*q.R));
 julia> Ak = q*A;
 julia> q \\ Ak ≈ A
 true
@@ -173,7 +173,7 @@ Assuming `A` contains samples of a function `f(r)` at sample points `Q.r`, then
 
 # Examples
 ```jldoctest
-julia> q = QDHT(10, 128); A = exp.(-q.r.^2/2);
+julia> q = QDHT{0, 1}(10, 128); A = exp.(-q.r.^2/2);
 julia> integrateR(abs2.(A), q) ≈ 0.5 # analytical solution of ∫exp(-r²)r dr from 0 to ∞
 true
 ```
@@ -195,7 +195,7 @@ Assuming `A` contains samples of a function `f(k)` at sample points `Q.k`, then
 
 # Examples
 ```jldoctest
-julia> q = QDHT(10, 128); A = exp.(-q.r.^2/2);
+julia> q = QDHT{0, 1}(10, 128); A = exp.(-q.r.^2/2);
 julia> integrateR(abs2.(A), q) ≈ 0.5 # analytical solution of ∫exp(-r²)r dr from 0 to ∞
 true
 julia> Ak = q*A;
@@ -213,7 +213,7 @@ Calculate on-axis sample in space (i.e. at r=0) from transformed array `Ak`.
 
 # Examples
 ```jldoctest
-julia> q = QDHT(10, 128); A = exp.(-q.r.^2/2);
+julia> q = QDHT{0, 1}(10, 128); A = exp.(-q.r.^2/2);
 julia> onaxis(q*A, q) ≈ 1 # should be exp(0) = 1
 true
 ```
@@ -234,7 +234,7 @@ Given `A`, sampled at `[r₁, r₂, r₃, ...]`, generates array sampled at
 
 # Examples
 ```jldoctest
-julia> q = QDHT(10, 128); A = exp.(-q.r.^2);
+julia> q = QDHT{0, 1}(10, 128); A = exp.(-q.r.^2);
 julia> As = symmetric(A, q);
 julia> size(As)
 (257,)
@@ -266,7 +266,7 @@ Create radial coordinate array to go along with `symmetric(A, Q::QDHT)`.
 
 # Examples
 ```jldoctest
-julia> q = QDHT(10, 4);
+julia> q = QDHT{0, 1}(10, 4);
 julia> q.r
 4-element Array{Float64,1}:
  1.6106347946239767
