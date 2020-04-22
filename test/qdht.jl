@@ -119,7 +119,7 @@
         vka = fk.(q1.k/2π, 1)/2π
         dynε(ext, est) = 20*log10.(abs.(ext.-est)./maximum(est))
         @test maximum(dynε(vka, vk)) < -10
-        @test_throws DomainError onaxis(vk, q1)
+        @test_throws MethodError onaxis(vk, q1)
         @test integrateR(abs2.(v), q1) ≈ integrateK(abs2.(vk), q1)
         @test isapprox(integrateR(abs2.(v), q1), hquadrature(r -> r*f(r)^2, 0, 3)[1], rtol=1e-2)
 

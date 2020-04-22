@@ -216,11 +216,7 @@ julia> onaxis(q*A, q) ≈ 1 # should be exp(0) = 1
 true
 ```
 """
-function onaxis(Ak, Q::QDHT{p}; dim=Q.dim) where {p}
-    p == 0 || throw(
-        DomainError("on-axis samples can only be obtained for 0th-order transforms"))
-    J₀₀ .* integrateK(Ak, Q; dim=dim)
-end
+onaxis(Ak, Q::QDHT{0}; dim=Q.dim) = J₀₀ .* integrateK(Ak, Q; dim=dim)
 
 """
     symmetric(A, Q::QDHT)
