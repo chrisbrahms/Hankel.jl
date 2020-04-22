@@ -302,9 +302,9 @@ same shape in space but with more samples.
     Unlike in zero-padding using FFTs, the old and oversampled **spatial** grids do not
     have any sampling points in common.
 """
-function oversample(A, Q::QDHT; factor::Int=4)
+function oversample(A, Q::QDHT{p, n}; factor::Int=4) where {p, n}
     factor == 1 && (return A, Q)
-    QNew = QDHT(Q.R, factor*Q.N, dim=Q.dim)
+    QNew = QDHT{p, n}(Q.R, factor*Q.N, dim=Q.dim)
     @assert all(QNew.k[1:Q.N] .≈ Q.k)
     Ak = Q * A
     shape = collect(size(A))
