@@ -1,4 +1,5 @@
 """
+    QDHT{p}(R, N; dim=1)
     QDHT([p, ] R, N; dim=1)
 
 `p`-th order quasi-discrete Hankel transform over aperture radius `R` with `N` samples
@@ -26,24 +27,23 @@ and [`integrateK`](@ref).
 The type of the coefficients is inferred from the type of `R` (but is promoted to be at
 least `Float`), so for arbitrary precision use `QDHT([p, ] BigFloat(R), ...)`.
 """
-struct QDHT{nT<:Real, pT<:Real}
-    p::pT # Order of the transform
+struct QDHT{p, T<:Real}
     N::Int # Number of samples
-    T::Array{nT, 2} # Transform matrix
-    J1sq::Array{nT, 1} # J₁² factors
-    K::nT # Highest spatial frequency
-    k::Vector{nT} # Spatial frequency grid
-    R::nT # Aperture size (largest real-space coordinate)
-    r::Vector{nT} # Real-space grid
-    scaleR::Vector{nT} # Scale factor for real-space integration
-    scaleK::Vector{nT} # Scale factor for frequency-space integration
+    T::Array{T, 2} # Transform matrix
+    J1sq::Array{T, 1} # J₁² factors
+    K::T # Highest spatial frequency
+    k::Vector{T} # Spatial frequency grid
+    R::T # Aperture size (largest real-space coordinate)
+    r::Vector{T} # Real-space grid
+    scaleR::Vector{T} # Scale factor for real-space integration
+    scaleK::Vector{T} # Scale factor for frequency-space integration
     dim::Int # Dimension along which to transform
 end
 
-function QDHT(p, R, N; dim=1)
-    p = convert(typeof(R), p)
-    roots = besselj_zero.(p, 1:N) # type of besselj_zero is inferred from first argument
-    S = besselj_zero(p, N+1)
+function QDHT{p}(R, N; dim=1) where {p}
+    pf, R = float.(promote(p, R))
+    roots = besselj_zero.(pf, 1:N) # type of besselj_zero is inferred from first argument
+    S = besselj_zero(pf, N+1)
     r = roots .* R/S # real-space vector
     K = S/R # Highest spatial frequency
     k = roots .* K/S # Spatial frequency vector
@@ -51,14 +51,13 @@ function QDHT(p, R, N; dim=1)
     J₁sq = J₁ .* J₁
     T = 2/S * besselj.(p, (roots * roots')./S)./J₁sq' # Transform matrix
 
-    K, R = promote(K, R) # deal with R::Int
-
     scaleR = 2/K^2 ./ J₁sq # scale factor for real-space integration
     scaleK = 2/R^2 ./ J₁sq # scale factor for reciprocal-space integration
-    QDHT(p, N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
+    QDHT{p, eltype(T)}(N, T, J₁sq, K, k, R, r, scaleR, scaleK, dim)
 end
 
-QDHT(R, N; dim=1) = QDHT(0, R, N; dim=dim)
+QDHT(R, N; dim=1) where {p} = QDHT{0}(R, N; dim=dim)
+QDHT(p, R, N; dim=1) = QDHT{p}(R, N; dim=dim)
 
 "
     mul!(Y, Q::QDHT, A)
@@ -213,8 +212,8 @@ julia> onaxis(q*A, q) ≈ 1 # should be exp(0) = 1
 true
 ```
 """
-function onaxis(Ak, Q::QDHT; dim=Q.dim)
-    Q.p == 0 || throw(
+function onaxis(Ak, Q::QDHT{p}; dim=Q.dim) where {p}
+    p == 0 || throw(
         DomainError("on-axis samples can only be obtained for 0th-order transforms"))
     J₀₀ .* integrateK(Ak, Q; dim=dim)
 end
