@@ -99,11 +99,12 @@ logbesseli(ν, x) = x > one(x) ? log(besselix(ν, x)) + x : log(besseli(ν, x))
 logbesselirat(ν, x) = logbesseli(ν, x) - ν * log(x)
 
 # pdf of non-central chi distribution reparameterized with location μ and scale σ
+# density wrt rⁿ dr
 function pdf_ncchi(r, μ, σ, n)
     ν = n + 1
     x = r / σ
     λ = μ / σ
-    logJ = -log(σ) # log derivative of f: z → r
+    logJ = -ν * log(σ) # (rⁿ dr) / (xⁿ dx) = 1 / σⁿ⁺¹
     logpdf = -(x^2 + λ^2) / 2 + logbesselirat(ν / 2 - 1, λ * x) + logJ
     return exp(logpdf)
 end
@@ -396,8 +397,8 @@ end
                 R = 30
                 N = 256
                 q = Hankel.QDHT{0,2}(R, N)
-                f(r) = pdf_ncchi(r, 10, 1, 2)
-                fk(k) = trans_pdf_ncchi(k, 10, 1, 2, 0)
+                f(r) = pdf_ncchi(r, 10, 2, 2)
+                fk(k) = trans_pdf_ncchi(k, 10, 2, 2, 0)
                 test_transform(q, f; fk = fk, atol = 2e-12, quad = false)
                 test_l2norm(q, f; quad = true, atol = 1e-15)
                 test_integrate(q, f; Ifr = _ -> 1, quad = false, atol = 1e-15)
@@ -479,8 +480,8 @@ end
                     R = 30
                     N = 256
                     q5 = Hankel.QDHT{p,n}(R, N)
-                    h(r) = pdf_ncchi(r, 10, 1, n)
-                    hk(k) = trans_pdf_ncchi(k, 10, 1, n, p)
+                    h(r) = pdf_ncchi(r, 10, 2, n)
+                    hk(k) = trans_pdf_ncchi(k, 10, 2, n, p)
 
                     v = h.(q5.r)
                     vk = q5 * v
