@@ -91,6 +91,7 @@ function test_integrate(q::QDHT, f; Ifr = nothing, quad = true, kwargs...)
     return nothing
 end
 
+# "dynamical error" from Guizar-Sicairos and Gutierrez-Vega
 dynε(ext, est) = 20 * log10.(abs.(ext .- est) ./ maximum(abs.(est)))
 
 logbesseli(ν, x) = x > one(x) ? log(besselix(ν, x)) + x : log(besseli(ν, x))
