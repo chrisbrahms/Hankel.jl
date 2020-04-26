@@ -369,17 +369,17 @@ end
                 end
             end
 
-            # @testset "f(r) = sinc(100r)²" begin
-            #     R = 4e-2
-            #     N = 256
-            #     q = Hankel.QDHT{0,2}(R, N)
-            #     f(r) = sinc(100 * r)^2
-            #     v = f.(q.r)
-            #     vk = q * v
-            #     f0 = f(0)
-            #     f0q = Hankel.onaxis(vk, q)
-            #     @test f0 ≈ f0q
-            # end
+            @testset "f(r) = sinc(100r)²" begin
+                R = 4e-2
+                N = 256
+                q = Hankel.QDHT{0,2}(R, N)
+                f(r) = sinc(100 * r)^2
+                v = f.(q.r)
+                vk = q * v
+                f0 = f(0)
+                f0q = Hankel.onaxis(vk, q)
+                @test isapprox(f0, f0q; atol = 1e-6)
+            end
 
             @testset "f(r) = exp(-a²r²/2)cos(16ar)" begin
                 R = 1e-2
