@@ -230,6 +230,9 @@ integrateK(Ak, Q::QDHT; dim=1) = dimdot(Q.scaleK, Ak; dim=dim)
 
 Calculate on-axis sample in space (i.e. at r=0) from transformed array `Ak`.
 
+!!! note
+    `onaxis` is currently only supported for 0-order transforms
+
 # Examples
 ```jldoctest
 julia> q = QDHT{0, 1}(10, 128); A = exp.(-q.r.^2/2);
@@ -266,6 +269,7 @@ true
 ```
 """
 function symmetric(A, Q::QDHT; dim=Q.dim)
+    order(Q) == 0 || throw(DomainError("`symmetric` is only supported for 0-order transforms"))
     s = collect(size(A))
     N = s[dim]
     s[dim] = 2N + 1
