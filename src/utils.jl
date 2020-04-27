@@ -140,6 +140,7 @@ After:
     Singapore: World Scientific Publishing Company, 2017.
 """
 function sphbesselj(p, n, x)
+    n == 1 && return besselj(p, x)
     α = (n - 1) / 2
     Jppa = besselj(p + α, x)
     cn = sphbesselj_scale(n)
