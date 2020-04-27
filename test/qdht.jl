@@ -245,7 +245,6 @@ end
             v = f.(q1.r);
             vk = q1*v;
             vka = fk.(q1.k/2π, 1)/2π
-            dynε(ext, est) = 20*log10.(abs.(ext.-est)./maximum(est))
             @test maximum(dynε(vka, vk)) < -10
             @test_throws MethodError onaxis(vk, q1)
             @test_throws DomainError symmetric(v, q1)
@@ -257,7 +256,6 @@ end
             v = f.(q4.r);
             vk = q4*v;
             vka = fk.(q4.k/2π, 4)/2π
-            dynε(ext, est) = 20*log10.(abs.(ext.-est)./maximum(est))
             @test maximum(dynε(vka, vk)) < -10
             @test integrateR(abs2.(v), q4) ≈ integrateK(abs2.(vk), q4)
 
