@@ -65,6 +65,25 @@ QDHT(R, N; dim=1) = QDHT{0}(R, N; dim=dim)
 QDHT(p, R, N; dim=1) = QDHT{p}(R, N; dim=dim)
 QDHT(p, n, R, N; dim=1) = QDHT{p, n}(R, N; dim=dim)
 
+"""
+    order(q::QDHT)
+
+Order of transform `q`.
+"""
+order(::QDHT{p}) where {p} = p
+
+"""
+    sphericaldim(q::QDHT)
+
+Spherical dimension ``n`` of transform `q`.
+
+Dimension of the ``n``-sphere over whose radial coordinate the bases of the transform `q`
+are orthogonal polynomials. For the circle, ``n=1``, and for the sphere, ``n=2``.
+
+See [`sphbesselj`](@ref).
+"""
+sphericaldim(::QDHT{p,n}) where {p,n} = n
+
 "
     mul!(Y, Q::QDHT, A)
 

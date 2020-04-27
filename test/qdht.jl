@@ -119,14 +119,24 @@ end
     @testset "constructors" begin
         q = QDHT(1.0, 10)
         @test q isa QDHT{0,1,Float64}
+        @test Hankel.order(q) == 0
+        @test Hankel.sphericaldim(q) == 1
         q = QDHT{1}(1.0, 10)
         @test q isa QDHT{1,1,Float64}
+        @test Hankel.order(q) == 1
+        @test Hankel.sphericaldim(q) == 1
         q = QDHT(2, 1.0, 10)
         @test q isa QDHT{2,1,Float64}
+        @test Hankel.order(q) == 2
+        @test Hankel.sphericaldim(q) == 1
         q = QDHT{1, 2}(1.0, 10)
         @test q isa QDHT{1,2,Float64}
+        @test Hankel.order(q) == 1
+        @test Hankel.sphericaldim(q) == 2
         q = QDHT(1, 2, 1.0, 10)
         @test q isa QDHT{1,2,Float64}
+        @test Hankel.order(q) == 1
+        @test Hankel.sphericaldim(q) == 2
     end
 
     @testset "cylindrical" begin
