@@ -102,6 +102,18 @@ function _dimdot!(out, v, A, idxlo, idxhi)
     end
 end
 
+"""
+    sphbesselj_scale(n)
+
+Return the normalization factor for the (hyper)spherical Bessel function
+([`sphbesselj`](@ref)) with spherical dimension ``n``, given as
+``c_n = \\sqrt{\\frac{π}{2}}`` for even ``n`` and 1 otherwise.
+
+After:
+
+[1] J. S. Avery, J. E. Avery. Hyperspherical Harmonics And Their Physical Applications.
+    Singapore: World Scientific Publishing Company, 2017.
+"""
 sphbesselj_scale(n) = isodd(n) ? 1.0 : √(π / 2)
 
 """
@@ -115,7 +127,12 @@ functions to the ``n``-sphere (embedded in ``ℝ^{n+1}``). It is given as
 j_p^{n}(x) = c_n x^{-(n-1)/2} J_{p + (n-1)/2}(x),
 ```
 
-where ``c_n = \\sqrt{\\frac{π}{2}}`` for even ``n`` and 1 otherwise.
+where ``c_n`` is a normalization factor defined by [`sphbesselj_scale`](@ref). Note that
+``n`` is not an exponent here.
+
+It has as its special cases:
+- Cylindrical Bessel function (``n=1``): ``j_p^{1}(x) = J_p(x)``
+- Spherical Bessel function (``n=2``): ``j_p^{2}(x) = j_p(x)``
 
 After:
 

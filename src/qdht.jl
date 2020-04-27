@@ -13,9 +13,12 @@ After:
 
 [2] M. Guizar-Sicairos and J. C. Gutiérrez-Vega, JOSA A 21, 53 (2004)
 
+[3] H. F. Johnson, Comput. Phys. Commun., 43, 2 (1987)
+
 but with some alterations:
 
-The transform matrix T is not the same as C/T defined in [1, 2].
+The transform matrix T is not the same as C/T defined in [1, 2] but is more like the form
+used in equation 14 of [3].
 Instead of dividing by j₁(αₚₙ)j₁(αₚₘ) we divide by j₁(αₚₙ)^2. This cancels out
 the factor between f and F so we do not have to mutltiply (divide) by j₁(αₚₙ) (j₁(αₚₘ)) before
 and after applying the transform matrix.
