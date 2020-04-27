@@ -4,8 +4,8 @@
     QDHT(p, [n, ] R, N; dim=1)
 
 `p`-th order quasi-discrete Hankel transform over aperture radius `R` with `N` samples
-which transforms along dimension `dim`. If not given, `p` defaults to 0, and `n` defaults
-to 1.
+which transforms along dimension `dim`. If not given, `p` defaults to 0, and `n` the
+spherical dimension defaults to 1 (cylindrical).
 
 After:
 
