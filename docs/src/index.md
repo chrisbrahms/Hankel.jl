@@ -1,14 +1,19 @@
 # Hankel
 
-`Hankel` implements the quasi-discrete Hankel transform (QDHT) as first laid out in [L. Yu, *et al.*, Optics Letters 23 (1998)](https://www.osapublishing.org/ol/abstract.cfm?uri=ol-23-6-409) and extended to higher orders in [M. Guizar-Sicairos and J. C. Gutiérrez-Vega, JOSA A 21, 53 (2004)](https://www.osapublishing.org/abstract.cfm?URI=josaa-21-1-53). The forward ``p^{\mathrm{th}}``-order Hankel transform of the radially symmetric function ``f(r)`` is defined as
+`Hankel` implements the quasi-discrete Hankel transform (QDHT) as introduced in [H. F. Johnson, Comput. Phys. Commun., 43, 2 (1987)](https://doi.org/10.1016/0010-4655(87)90204-9), laid out for 0-order in [L. Yu, *et al.*, Optics Letters 23 (1998)](https://www.osapublishing.org/ol/abstract.cfm?uri=ol-23-6-409), and extended to higher orders in [M. Guizar-Sicairos and J. C. Gutiérrez-Vega, JOSA A 21, 53 (2004)](https://www.osapublishing.org/abstract.cfm?URI=josaa-21-1-53).
+We generalized the cylindrical QDHT in the above publications to its (hyper)spherical form.
+The forward ``p^{\mathrm{th}}``-order (hyper)spherical Hankel transform of the radially symmetric function ``f(r)`` is defined as
 ```math
-\tilde{f}(k) = \int_0^\infty f(r) J_p(kr) r\,\mathrm{d}r\,,
+\tilde{f}(k) = c_n^{-1} \int_0^\infty f(r) j_p^n(kr) r^n\,\mathrm{d}r\,,
 ```
-where ``J_p(x)`` is the ``p^{\mathrm{th}}``-order Bessel function of the first kind. Correspondingly, the inverse transform is
+where ``c_n`` is a constant (see [`sphbesselj_scale`](@ref Hankel.sphbesselj_scale)), and ``j_p^n(x)`` is the ``p^{\mathrm{th}}``-order (hyper)spherical Bessel function of the first kind with spherical dimension ``n`` (see [`sphbesselj`](@ref Hankel.sphbesselj)).
+Correspondingly, the inverse transform is
 ```math
-f(r) = \int_0^\infty \tilde{f}(k) J_p(kr) k\,\mathrm{d}k\,.
+f(r) = c_n^{-1} \int_0^\infty \tilde{f}(k) j_p^n(kr) k^n\,\mathrm{d}k\,.
 ```
 Note that here, ``k`` includes the factor of ``2\pi``, i.e. it is spatial angular frequency.
+
+The remainder of the documentation considers without loss of generalization only the cylindrical case (``n=1``, with ``j_p^n(x) = J_p(x)``).
 
 The QDHT approximates these transforms under the assumption that ``f(r) = 0`` for ``r > R`` where ``R`` is the aperture size. By expanding ``f(r)`` as a Fourier-Bessel series and choosing to sample ``f(r)`` at coordinates ``r_n = j_nR/j_{N+1}``, where ``j_n`` is the ``n^{\mathrm{th}}`` zero of ``J_p(x)`` and ``N`` is the number of samples, the Hankel transform turns into a matrix-vector multiplication.
 
