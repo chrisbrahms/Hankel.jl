@@ -1,11 +1,15 @@
 """
-    squeeze(A; dims)
+    padzeros(A, N; dim = 1)
 
-Wrapper around `dropdims` to handle both numbers (return just the number) and arrays
-(return `dropdims(A; dims)`).
+Pad array `A` with zeros to length `N` along dimension `dim`.
 """
-squeeze(A::Number; dims) = A
-squeeze(A::AbstractArray; dims) = dropdims(A, dims=dims)
+function padzeros(A, N; dim = 1)
+    shape = size(A)
+    Nold = shape[dim]
+    shape = Base.setindex(shape, N - Nold, dim)
+    zs = zeros(eltype(A), shape)
+    return cat(A, zs; dims = dim)
+end
 
 """
     dot!(out, M, V; dim=1)
