@@ -101,10 +101,9 @@ function _integrateRK_back(ΔΩ, A::AbstractMatrix, scale; dim = 1)
     return dim == 1 ? conj.(scale) .* ΔΩ : ΔΩ * scale'
 end
 function _integrateRK_back(ΔΩ, A, scale; dim = 1)
-    dims = Tuple(collect(size(A)))
+    N = size(A, dim)
     n = ndims(A)
-    scalearray =
-        reshape(scale, ntuple(_ -> 1, dim - 1)..., dims[dim], ntuple(_ -> 1, n - dim)...)
+    scalearray = reshape(scale, ntuple(_ -> 1, dim - 1)..., N, ntuple(_ -> 1, n - dim)...)
     ∂A = ΔΩ .* conj.(scalearray)
     return ∂A
 end
