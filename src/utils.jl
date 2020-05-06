@@ -151,13 +151,13 @@ function sphbesselj(p, n, x)
     if abs(x) ≤ sqrt(eps(real(zero(Jppa))))
         if p == 0
             J0pa = cn / gamma(α + 1) / 2^α
-            return convert(typeof(Jppa), J0pa)
+            return oftype(Jppa, J0pa)
         else
             return zero(Jppa)
         end
     end
     jp = cn * Jppa / x^α
-    return convert(typeof(Jppa), jp)
+    return oftype(Jppa, jp)
 end
 
 """

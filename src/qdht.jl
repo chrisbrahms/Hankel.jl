@@ -47,8 +47,9 @@ struct QDHT{p, n, T<:Real}
 end
 
 function QDHT{p, n}(R, N; dim=1) where {p, n}
-    pf, R = float.(promote(p, R))
-    cn = convert(typeof(R), sphbesselj_scale(n))
+    R = float(R)
+    pf = oftype(R, p)
+    cn = oftype(R, sphbesselj_scale(n))
     roots = sphbesselj_zero.(pf, n, 1:N) # type of sphbesselj_zero is inferred from first argument
     S = sphbesselj_zero(pf, n, N+1)
     r = roots .* R/S # real-space vector
