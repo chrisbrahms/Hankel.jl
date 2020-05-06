@@ -1,5 +1,5 @@
 # adapted from ChainRulesTestUtils.rrule_test with a few changes:
-# - Allows kwargs to function
+# - Allows kwargs to be passed to function
 # - Allows the output of the rrule to be only approximately equal to the output of the usual
 #   function
 # - Checks that pullbacks of mutating functions reverse the mutation
