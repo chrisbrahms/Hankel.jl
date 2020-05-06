@@ -87,6 +87,10 @@ See [`sphbesselj`](@ref).
 """
 sphericaldim(::QDHT{p,n}) where {p,n} = n
 
+function Base.inv(Q::T) where {T<:QDHT}
+    return T(Q.N, Q.T, Q.j1sq, Q.R, Q.r, Q.K, Q.k, Q.scaleK, Q.scaleR, inv(Q.scaleRK), Q.dim)
+end
+
 function Base.reshape(Q::QDHT{p, n}, N::Int) where {p, n}
     N == Q.N && return Q
     return QDHT{p, n}(Q.R, N, dim=Q.dim)
