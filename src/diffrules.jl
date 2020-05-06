@@ -39,7 +39,8 @@ function ChainRulesCore.rrule(::typeof(\), Q::QDHT, A)
 end
 
 function _mul_back(ΔY, Q, A, s)
-    ∂A = similar(ΔY)
+    T = typeof(one(eltype(ΔY)) * one(eltype(Q.T)) * one(eltype(s)))
+    ∂A = Array{T}(undef, size(A))
     dot!(∂A, Q.T', ΔY, dim = Q.dim)
     ∂A .*= s
     return ∂A
