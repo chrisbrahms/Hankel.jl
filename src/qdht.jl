@@ -95,7 +95,19 @@ Compute the `QDHT` for the inverse of the Hankel transform `Q`, that is, the tra
 that `Q * A == inv(Q) \ A`
 """
 function Base.inv(Q::T) where {T<:QDHT}
-    return T(Q.N, Q.T, Q.j1sq, Q.R, Q.r, Q.K, Q.k, Q.scaleK, Q.scaleR, inv(Q.scaleRK), Q.dim)
+    return T(
+        Q.N,
+        Q.T,
+        Q.j1sq,
+        Q.R,
+        Q.r,
+        Q.K,
+        Q.k,
+        Q.scaleK,
+        Q.scaleR,
+        inv(Q.scaleRK),
+        Q.dim,
+    )
 end
 
 """
