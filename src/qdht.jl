@@ -88,10 +88,22 @@ See [`sphbesselj`](@ref).
 """
 sphericaldim(::QDHT{p,n}) where {p,n} = n
 
+"""
+    inv(Q::QDHT) -> QDHT
+
+Compute the `QDHT` for the inverse of the Hankel transform `Q`, that is, the transform such
+that `Q * A == inv(Q) \ A`
+"""
 function Base.inv(Q::T) where {T<:QDHT}
     return T(Q.N, Q.T, Q.j1sq, Q.R, Q.r, Q.K, Q.k, Q.scaleK, Q.scaleR, inv(Q.scaleRK), Q.dim)
 end
 
+"""
+    reshape(Q::QDHT, N::Int) -> QDHT
+
+Compute a new `QDHT` with the same order, spherical dimension, and radius but with `N`
+points.
+"""
 function Base.reshape(Q::QDHT{p, n}, N::Int) where {p, n}
     N == Q.N && return Q
     return QDHT{p, n}(Q.R, N, dim=Q.dim)
@@ -322,9 +334,13 @@ julia> Rsymmetric(q)
 Rsymmetric(Q::QDHT) = vcat(-view(Q.r, lastindex(Q.r):-1:firstindex(Q.r)), 0, Q.r)
 
 """
-    oversample(A, Q::QDHT; factor::Int=4)
+    oversample(A, Q::QDHT; factor::Int=4) -> Tuple{AbstractArray,QDHT}
+    oversample(A, Q::QDHT, QNew::QDHT) -> AbstractArray
 
 Oversample (smooth) the array `A`, which is sampled with the `QDHT` `Q`, by a `factor`.
+
+If calling the function many times, it is more efficient to precompute `QNew` with
+[`reshape`](@ref) and then provide it to the function.
 
 This works like Fourier-domain zero-padding: a new `QDHT` is created with the same radius,
 but `factor` times more points. The existing array is transformed and placed onto this
