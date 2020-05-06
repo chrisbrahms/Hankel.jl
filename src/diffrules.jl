@@ -9,6 +9,9 @@ function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
 end
 
 ## rules for fwd/rev transform
+ChainRulesCore.frule((_, ΔA), ::typeof(*), Q::QDHT, A) = (Q * A, Q * ΔA)
+ChainRulesCore.frule((_, ΔA), ::typeof(\), Q::QDHT, A) = (Q \ A, Q \ ΔA)
+
 function ChainRulesCore.rrule(::typeof(*), Q::QDHT, A)
     Y = Q * A
     function mul_pullback(ΔY)
@@ -37,6 +40,14 @@ function _mul_back(ΔY, Q, A, s)
 end
 
 ## rules for integrateR/integrateK
+function ChainRulesCore.frule((ΔA, _), ::typeof(integrateR), A, Q::QDHT; kwargs...)
+    return integrateR(A, Q; kwargs...), integrateR(ΔA, Q; kwargs...)
+end
+
+function ChainRulesCore.frule((ΔA, _), ::typeof(integrateK), A, Q::QDHT; kwargs...)
+    return integrateK(A, Q; kwargs...), integrateK(ΔA, Q; kwargs...)
+end
+
 function ChainRulesCore.rrule(::typeof(integrateR), A, Q::QDHT; dim = 1)
     function integrateR_pullback(ΔΩ)
         ∂A = @thunk _integrateRK_back(ΔΩ, A, Q.scaleR; dim = dim)
