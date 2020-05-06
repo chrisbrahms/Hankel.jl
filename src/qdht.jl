@@ -273,15 +273,12 @@ true
 """
 function symmetric(A, Q::QDHT; dim=Q.dim)
     order(Q) == 0 || throw(DomainError("`symmetric` is only supported for 0-order transforms"))
-    s = collect(size(A))
+    s = size(A)
     N = s[dim]
-    s[dim] = 2N + 1
-    out = Array{eltype(A)}(undef, Tuple(s))
-    idxlo = CartesianIndices(size(A)[1:dim-1])
-    idxhi = CartesianIndices(size(A)[dim+1:end])
-    out[idxlo, 1:N, idxhi] .= A[idxlo, N:-1:1, idxhi]
-    out[idxlo, N+1, idxhi] .= squeeze(onaxis(Q*A, Q), dims=dim)
-    out[idxlo, (N+2):(2N+1), idxhi] .= A[idxlo, :, idxhi]
+    idxlo = CartesianIndices(s[1:(dim - 1)])
+    idxhi = CartesianIndices(s[(dim + 1):end])
+    A0 = onaxis(Q * A, Q)
+    out = cat(view(A, idxlo, N:-1:1, idxhi), A0, view(A, idxlo, :, idxhi); dims=dim)
     return out
 end
 
