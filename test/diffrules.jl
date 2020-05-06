@@ -96,32 +96,26 @@ end
             end
         end
 
-        @testset "dimdot(::AbstractMatrix, ::Array{$T})" begin
+        @testset "integrateR/K(::AbstractMatrix, ::Array{$T})" begin
             rng = MersenneTwister(27)
             @testset "Vector" begin
                 N = 64
-                v, A, Ā, ȳ =
-                    randn(rng, T, N), randn(rng, T, N), randn(rng, T, N), randn(rng, T)
-                pullback_test(Hankel.dimdot, ȳ, (v, nothing), (A, Ā))
+                q = Hankel.QDHT{1,2}(10, N)
+                A, Ā, ȳ = randn(rng, T, N), randn(rng, T, N), randn(rng, T)
+                pullback_test(integrateR, ȳ, (A, Ā), (q, nothing))
+                pullback_test(integrateK, ȳ, (A, Ā), (q, nothing))
             end
 
             @testset "Matrix" begin
                 N = 64
                 M = 5
                 @testset for dim in (1, 2)
+                    q = Hankel.QDHT{1,2}(10, N)
                     s = dim == 1 ? (N, M) : (M, N)
                     sy = dim == 1 ? (1, M) : (M, 1)
-                    v, A, Ā, ȳ = randn(rng, T, N),
-                    randn(rng, T, s),
-                    randn(rng, T, s),
-                    randn(rng, T, sy)
-                    pullback_test(
-                        Hankel.dimdot,
-                        ȳ,
-                        (v, nothing),
-                        (A, Ā);
-                        fkwargs = (; dim = dim),
-                    )
+                    A, Ā, ȳ = randn(rng, T, s), randn(rng, T, s), randn(rng, T, sy)
+                    pullback_test(integrateR, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = dim))
+                    pullback_test(integrateK, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = dim))
                 end
             end
 
@@ -129,17 +123,12 @@ end
                 N = 64
                 M = 5
                 K = 10
+                q = Hankel.QDHT{1,2}(10, N)
                 s = (M, N, K)
                 sy = (M, 1, K)
-                v, A, Ā, ȳ =
-                    randn(rng, T, N), randn(rng, T, s), randn(rng, T, s), randn(rng, T, sy)
-                pullback_test(
-                    Hankel.dimdot,
-                    ȳ,
-                    (v, nothing),
-                    (A, Ā);
-                    fkwargs = (; dim = 2),
-                )
+                A, Ā, ȳ = randn(rng, T, s), randn(rng, T, s), randn(rng, T, sy)
+                pullback_test(integrateR, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = 2))
+                pullback_test(integrateK, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = 2))
             end
         end
     end
