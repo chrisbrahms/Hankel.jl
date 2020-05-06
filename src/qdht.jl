@@ -87,6 +87,11 @@ See [`sphbesselj`](@ref).
 """
 sphericaldim(::QDHT{p,n}) where {p,n} = n
 
+function Base.reshape(Q::QDHT{p, n}, N::Int) where {p, n}
+    N == Q.N && return Q
+    return QDHT{p, n}(Q.R, N, dim=Q.dim)
+end
+
 "
     mul!(Y, Q::QDHT, A)
 
