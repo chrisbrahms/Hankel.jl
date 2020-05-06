@@ -311,7 +311,7 @@ function symmetric(A, Q::QDHT; dim=Q.dim)
     N = s[dim]
     idxlo = CartesianIndices(s[1:(dim - 1)])
     idxhi = CartesianIndices(s[(dim + 1):end])
-    A0 = onaxis(Q * A, Q)
+    A0 = asarray(onaxis(Q * A, Q))
     out = cat(view(A, idxlo, N:-1:1, idxhi), A0, view(A, idxlo, :, idxhi); dims=dim)
     return out
 end

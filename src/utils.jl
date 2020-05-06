@@ -1,3 +1,6 @@
+asarray(x::AbstractArray) = x
+asarray(x::Number) = fill(x, ())
+
 """
     padzeros(A, N; dim = 1)
 
