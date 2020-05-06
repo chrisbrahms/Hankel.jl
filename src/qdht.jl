@@ -92,7 +92,7 @@ sphericaldim(::QDHT{p,n}) where {p,n} = n
     inv(Q::QDHT) -> QDHT
 
 Compute the `QDHT` for the inverse of the Hankel transform `Q`, that is, the transform such
-that `Q * A == inv(Q) \ A`
+that `Q * A == inv(Q) \\ A`
 """
 function Base.inv(Q::T) where {T<:QDHT}
     return T(
