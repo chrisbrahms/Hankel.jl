@@ -3,7 +3,7 @@ import FunctionZeros: besselj_zero
 import SpecialFunctions: besselj, gamma
 import LinearAlgebra: mul!, ldiv!, dot
 import Base: *, \
-using ZygoteRules
+using ChainRulesCore
 
 export QDHT, integrateK, integrateR, onaxis, symmetric, Rsymmetric
 
