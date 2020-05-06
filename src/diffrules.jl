@@ -3,7 +3,7 @@
 ## Constructor
 function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
     function QDHT_pullback(ΔQ)
-        return (NO_FIELD, map(_ -> DoesNotExist(), args)...)
+        return (NO_FIELDS, map(_ -> DoesNotExist(), args)...)
     end
     return T(args...; kwargs...), QDHT_pullback
 end

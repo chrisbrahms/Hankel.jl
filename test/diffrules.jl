@@ -51,6 +51,13 @@ function rrule_test(
 end
 
 @testset "Automatic differentiation rules" begin
+    @testset "QDHT" begin
+        rng = MersenneTwister(68)
+        N = 64
+        R = 10.0
+        rrule_test(Hankel.QDHT{1,2}, nothing, (R, nothing), (N, nothing))
+    end
+
     @testset "$f(::QDHT, ::Array{$T})" for f in (*, \), T in (Float64, ComplexF64)
         rng = MersenneTwister(86)
         N, M, K = 64, 5, 10
