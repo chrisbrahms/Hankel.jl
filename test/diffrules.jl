@@ -84,7 +84,9 @@ end
         end
     end
 
-    @testset "$f(::Array{$T}, ::QDHT, ::Array{$T})" for f in (mul!, ldiv!), T in (Float64, ComplexF64)
+    @testset "$f(::Array{$T}, ::QDHT, ::Array{$T})" for f in (mul!, ldiv!),
+        T in (Float64, ComplexF64)
+
         rng = MersenneTwister(86)
         N, M, K = 64, 5, 10
         @testset "Vector" begin
@@ -110,7 +112,9 @@ end
         end
     end
 
-    @testset "$f(::Array{$T}, ::QDHT)" for f in (integrateR, integrateK), T in (Float64, ComplexF64)
+    @testset "$f(::Array{$T}, ::QDHT)" for f in (integrateR, integrateK),
+        T in (Float64, ComplexF64)
+
         rng = MersenneTwister(27)
         N, M, K = 64, 5, 10
         q = Hankel.QDHT{1,2}(10, N)

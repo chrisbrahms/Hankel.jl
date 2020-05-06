@@ -48,15 +48,15 @@ end
 
 ### mutating pullbacks need to undo any changes they make to the inputs
 function ChainRulesCore.rrule(::typeof(mul!), Y, Q::QDHT, A)
-   Ycopy = copy(Y)
-   function mul!_pullback(ΔY)
-       copyto!(Y, Ycopy)
-       ∂Y = DoesNotExist()
-       ∂Q = DoesNotExist()
-       ∂A = @thunk _mul_back(ΔY, Q, A, Q.scaleRK)
-       return NO_FIELDS, ∂Y, ∂Q, ∂A
-   end
-   return mul!(Y, Q, A), mul!_pullback
+    Ycopy = copy(Y)
+    function mul!_pullback(ΔY)
+        copyto!(Y, Ycopy)
+        ∂Y = DoesNotExist()
+        ∂Q = DoesNotExist()
+        ∂A = @thunk _mul_back(ΔY, Q, A, Q.scaleRK)
+        return NO_FIELDS, ∂Y, ∂Q, ∂A
+    end
+    return mul!(Y, Q, A), mul!_pullback
 end
 
 function ChainRulesCore.rrule(::typeof(ldiv!), Y, Q::QDHT, A)
@@ -103,12 +103,8 @@ end
 function _integrateRK_back(ΔΩ, A, scale; dim = 1)
     dims = Tuple(collect(size(A)))
     n = ndims(A)
-    scalearray = reshape(
-        scale,
-        ntuple(_ -> 1, dim - 1)...,
-        dims[dim],
-        ntuple(_ -> 1, n - dim)...,
-    )
+    scalearray =
+        reshape(scale, ntuple(_ -> 1, dim - 1)..., dims[dim], ntuple(_ -> 1, n - dim)...)
     ∂A = ΔΩ .* conj.(scalearray)
     return ∂A
 end
