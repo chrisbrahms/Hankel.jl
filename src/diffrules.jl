@@ -15,7 +15,7 @@ function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(mul!), Y, Q::QDHT, A)
     return mul!(Y, Q, A), mul!(ΔY, Q, ΔA)
 end
 function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(ldiv!), Y, Q::QDHT, A)
-    return ldiv!(Y, Q, A), ldiv!(ΔY, Q, A)
+    return ldiv!(Y, Q, A), ldiv!(ΔY, Q, ΔA)
 end
 
 function ChainRulesCore.rrule(::typeof(*), Q::QDHT, A)
