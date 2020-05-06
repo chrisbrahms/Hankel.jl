@@ -1,5 +1,13 @@
 # Rules for automatic differentiation
 
+## Constructor
+function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
+    function QDHT_pullback(ΔQ)
+        return (NO_FIELD, map(_ -> DoesNotExist(), args)...)
+    end
+    return T(args...; kwargs...), QDHT_pullback
+end
+
 ## rules for fwd/rev transform
 function ChainRulesCore.rrule(::typeof(*), Q::QDHT, A)
     Y = Q * A
