@@ -50,6 +50,55 @@ function rrule_test(
     return nothing
 end
 
+# adapted from ChainRulesTestUtils.frule_test
+function frule_test(
+    f,
+    xẋs::Tuple{Any,Any}...;
+    rtol = 1e-9,
+    atol = 1e-9,
+    fkwargs = NamedTuple(),
+    fdm = central_fdm(5, 1),
+    kwargs...,
+)
+    xs, ẋs = first.(xẋs), last.(xẋs)
+
+    y = f(deepcopy(xs)...; fkwargs...)
+    y_ad, dy_ad = frule((NO_FIELDS, deepcopy(ẋs)...), f, deepcopy(xs)...; fkwargs...)
+    if y isa Number || y isa AbstractVector
+        @test isapprox(y_ad, y; rtol = rtol, atol = atol, kwargs...)
+    end
+
+    function f2(args...; kwargs...)
+        allargs = ()
+        j = 1
+        for i in eachindex(xs)
+            if ẋs[i] === nothing
+                allargs = (allargs..., xs[i])
+            else
+                allargs = (allargs..., args[j])
+                j += 1
+            end
+        end
+        @assert j == length(args) + 1
+        @assert length(allargs) == length(xs)
+        return f(allargs...; kwargs...)
+    end
+
+    arginds = findall(ẋs .!== nothing)
+    xsargs = deepcopy(xs[arginds])
+    ẋsargs = deepcopy(ẋs[arginds])
+
+    dy_fd = jvp(fdm, xs -> f2(xs...; fkwargs...), (xsargs, ẋsargs))
+    @test isapprox(
+        collect(extern.(dy_ad)),  # Use collect so can use vector equality
+        collect(dy_fd);
+        rtol = rtol,
+        atol = atol,
+        kwargs...,
+    )
+    return nothing
+end
+
 @testset "Automatic differentiation rules" begin
     @testset "QDHT" begin
         rng = MersenneTwister(68)
@@ -63,24 +112,27 @@ end
         N, M, K = 64, 5, 10
         @testset "Vector" begin
             q = Hankel.QDHT{1,2}(10, N)
-            fr, f̄r, f̄k = ntuple(_ -> randn(rng, T, N), 3)
+            fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, T, N), 4)
             rrule_test(f, f̄k, (q, nothing), (fr, f̄r))
+            frule_test(f, (q, nothing), (fr, ḟr))
         end
 
         @testset "Matrix" begin
             @testset for dim in (1, 2)
                 q = Hankel.QDHT{1,2}(10, N; dim = dim)
                 s = dim == 1 ? (N, M) : (M, N)
-                fr, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 3)
+                fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 4)
                 rrule_test(f, f̄k, (q, nothing), (fr, f̄r))
+                frule_test(f, (q, nothing), (fr, ḟr))
             end
         end
 
         @testset "Array{$T,3}" begin
             q = Hankel.QDHT{1,2}(10, N; dim = 2)
             s = (M, N, K)
-            fr, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 3)
+            fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 4)
             rrule_test(f, f̄k, (q, nothing), (fr, f̄r))
+            frule_test(f, (q, nothing), (fr, ḟr))
         end
     end
 
@@ -91,24 +143,27 @@ end
         N, M, K = 64, 5, 10
         @testset "Vector" begin
             q = Hankel.QDHT{1,2}(10, N)
-            fr, fk, f̄r, f̄k = ntuple(_ -> randn(rng, T, N), 4)
+            fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, N), 6)
             rrule_test(f, f̄k, (fk, nothing), (q, nothing), (fr, f̄r))
+            frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
         end
 
         @testset "Matrix" begin
             @testset for dim in (1, 2)
                 q = Hankel.QDHT{1,2}(10, N; dim = dim)
                 s = dim == 1 ? (N, M) : (M, N)
-                fr, fk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 4)
+                fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 6)
                 rrule_test(f, f̄k, (fk, nothing), (q, nothing), (fr, f̄r))
+                frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
             end
         end
 
         @testset "Array{$T,3}" begin
             q = Hankel.QDHT{1,2}(10, N; dim = 2)
             s = (M, N, K)
-            fr, fk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 4)
+            fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 6)
             rrule_test(f, f̄k, (fk, nothing), (q, nothing), (fr, f̄r))
+            frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
         end
     end
 
@@ -119,24 +174,31 @@ end
         N, M, K = 64, 5, 10
         q = Hankel.QDHT{1,2}(10, N)
         @testset "Vector" begin
-            A, Ā, ȳ = randn(rng, T, N), randn(rng, T, N), randn(rng, T)
+            A, Ȧ, Ā = ntuple(_ -> randn(rng, T, N), 3)
+            ȳ = randn(rng, T)
             rrule_test(f, ȳ, (A, Ā), (q, nothing))
+            frule_test(f, (A, Ȧ), (q, nothing))
         end
 
         @testset "Matrix" begin
             @testset for dim in (1, 2)
                 s = dim == 1 ? (N, M) : (M, N)
                 sy = dim == 1 ? (1, M) : (M, 1)
-                A, Ā, ȳ = randn(rng, T, s), randn(rng, T, s), randn(rng, T, sy)
+                A, Ȧ, Ā = ntuple(_ -> randn(rng, T, s), 3)
+                ȳ = randn(rng, T, sy)
                 rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = dim))
+                frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (; dim = dim))
             end
         end
 
         @testset "Array{$T,3}" begin
             s = (M, N, K)
             sy = (M, 1, K)
-            A, Ā, ȳ = randn(rng, T, s), randn(rng, T, s), randn(rng, T, sy)
-            rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = 2))
+            dim = 2
+            A, Ȧ, Ā = ntuple(_ -> randn(rng, T, s), 3)
+            ȳ = randn(rng, T, sy)
+            rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = dim))
+            frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (; dim = dim))
         end
     end
 end
