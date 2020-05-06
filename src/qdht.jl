@@ -312,7 +312,7 @@ julia> Rsymmetric(q)
   7.8973942990196395
 ```
 """
-Rsymmetric(Q::QDHT) = vcat(-Q.r[end:-1:1], 0, Q.r)
+Rsymmetric(Q::QDHT) = vcat(-view(Q.r, lastindex(Q.r):-1:firstindex(Q.r)), 0, Q.r)
 
 """
     oversample(A, Q::QDHT; factor::Int=4)
