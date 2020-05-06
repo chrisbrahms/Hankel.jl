@@ -9,12 +9,12 @@ function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
 end
 
 ## rules for fwd/rev transform
-ChainRulesCore.frule((_, ΔA), ::typeof(*), Q::QDHT, A) = (Q * A, Q * ΔA)
-ChainRulesCore.frule((_, ΔA), ::typeof(\), Q::QDHT, A) = (Q \ A, Q \ ΔA)
-function ChainRulesCore.frule((ΔY, _, ΔA), ::typeof(mul!), Y, Q::QDHT, A)
+ChainRulesCore.frule((_, _, ΔA), ::typeof(*), Q::QDHT, A) = (Q * A, Q * ΔA)
+ChainRulesCore.frule((_, _, ΔA), ::typeof(\), Q::QDHT, A) = (Q \ A, Q \ ΔA)
+function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(mul!), Y, Q::QDHT, A)
     return mul!(Y, Q, A), mul!(ΔY, Q, ΔA)
 end
-function ChainRulesCore.frule((ΔY, _, ΔA), ::typeof(ldiv!), Y, Q::QDHT, A)
+function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(ldiv!), Y, Q::QDHT, A)
     return ldiv!(Y, Q, A), ldiv!(ΔY, Q, A)
 end
 
@@ -71,11 +71,11 @@ function ChainRulesCore.rrule(::typeof(ldiv!), Y, Q::QDHT, A)
 end
 
 ## rules for integrateR/integrateK
-function ChainRulesCore.frule((ΔA, _), ::typeof(integrateR), A, Q::QDHT; kwargs...)
+function ChainRulesCore.frule((_, ΔA, _), ::typeof(integrateR), A, Q::QDHT; kwargs...)
     return integrateR(A, Q; kwargs...), integrateR(ΔA, Q; kwargs...)
 end
 
-function ChainRulesCore.frule((ΔA, _), ::typeof(integrateK), A, Q::QDHT; kwargs...)
+function ChainRulesCore.frule((_, ΔA, _), ::typeof(integrateK), A, Q::QDHT; kwargs...)
     return integrateK(A, Q; kwargs...), integrateK(ΔA, Q; kwargs...)
 end
 
