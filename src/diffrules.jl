@@ -11,6 +11,12 @@ end
 ## rules for fwd/rev transform
 ChainRulesCore.frule((_, ΔA), ::typeof(*), Q::QDHT, A) = (Q * A, Q * ΔA)
 ChainRulesCore.frule((_, ΔA), ::typeof(\), Q::QDHT, A) = (Q \ A, Q \ ΔA)
+function ChainRulesCore.frule((ΔY, _, ΔA), ::typeof(mul!), Y, Q::QDHT, A)
+    return mul!(Y, Q, A), mul!(ΔY, Q, ΔA)
+end
+function ChainRulesCore.frule((ΔY, _, ΔA), ::typeof(ldiv!), Y, Q::QDHT, A)
+    return ldiv!(Y, Q, A), ldiv!(ΔY, Q, A)
+end
 
 function ChainRulesCore.rrule(::typeof(*), Q::QDHT, A)
     Y = Q * A
@@ -37,6 +43,31 @@ function _mul_back(ΔY, Q, A, s)
     dot!(∂A, Q.T', ΔY, dim = Q.dim)
     ∂A .*= s
     return ∂A
+end
+
+### mutating pullbacks need to undo any changes they make to the inputs
+function ChainRulesCore.rrule(::typeof(mul!), Y, Q::QDHT, A)
+   Ycopy = copy(Y)
+   function mul!_pullback(ΔY)
+       copyto!(Y, Ycopy)
+       ∂Y = DoesNotExist()
+       ∂Q = DoesNotExist()
+       ∂A = @thunk _mul_back(ΔY, Q, A, Q.scaleRK)
+       return NO_FIELDS, ∂Y, ∂Q, ∂A
+   end
+   return mul!(Y, Q, A), mul!_pullback
+end
+
+function ChainRulesCore.rrule(::typeof(ldiv!), Y, Q::QDHT, A)
+    Ycopy = copy(Y)
+    function ldiv!_pullback(ΔY)
+        copyto!(Y, Ycopy)
+        ∂Y = DoesNotExist()
+        ∂Q = DoesNotExist()
+        ∂A = @thunk _mul_back(ΔY, Q, A, inv(Q.scaleRK))
+        return NO_FIELDS, ∂Y, ∂Q, ∂A
+    end
+    return ldiv!(Y, Q, A), ldiv!_pullback
 end
 
 ## rules for integrateR/integrateK
