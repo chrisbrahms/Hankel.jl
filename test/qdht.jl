@@ -140,6 +140,24 @@ end
         @test Hankel.sphericaldim(q) == 2
     end
 
+    @testset "Base.inv(::QDHT)" begin
+        q = QDHT{1, 2}(1.0, 10)
+        qinv = inv(q)
+        q2 = QDHT{1, 2}(q.K, q.N)
+        @test typeof(q2) === typeof(qinv)
+        @test all(map(s -> isapprox(getproperty(q2, s), getproperty(qinv, s); atol=1e-12), propertynames(q2)))
+        q2inv = inv(q2)
+        @test all(map(s -> isapprox(getproperty(q, s), getproperty(q2inv, s); atol=1e-12), propertynames(q)))
+    end
+
+    @testset "Base.reshape(::QDHT, ::Int)" begin
+        q = QDHT{1, 2}(1.0, 10)
+        q2 = reshape(q, 20)
+        @test typeof(q) === typeof(q2)
+        @test q2.R == q.R
+        @test q2.N == 20
+    end
+
     @testset "cylindrical" begin
         @testset "transform" begin
             R = 4e-2
@@ -342,12 +360,26 @@ end
             @test integrateR(abs2.(v), q) ≈ integrateR(abs2.(vo), qo)
             @test f(0) ≈ onaxis(qo*vo, qo)
 
+            qo2 = reshape(q, N * 4)
+            vo2 = Hankel.oversample(v, q, qo2)
+            @test typeof(qo2) == typeof(qo)
+            @test qo2.R == qo.R
+            @test qo2.N == qo.N
+            @test vo2 == vo
+
             v2 = hcat(v, v)
             vo, qo = Hankel.oversample(v2, q, factor=4)
             @test qo.N == 4*q.N
             @test all(isapprox(vo[:, 1], f.(qo.r), rtol=1e-13))
             @test all(isapprox(vo[:, 2], f.(qo.r), rtol=1e-13))
             @test integrateR(abs2.(v2), q) ≈ integrateR(abs2.(vo), qo)
+
+            qo2 = reshape(q, N * 4)
+            vo2 = Hankel.oversample(v2, q, qo2)
+            @test typeof(qo2) == typeof(qo)
+            @test qo2.R == qo.R
+            @test qo2.N == qo.N
+            @test vo2 == vo
         end
     end
 
