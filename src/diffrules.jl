@@ -1,6 +1,11 @@
 # Rules for automatic differentiation
 
 ## Constructor
+### These rules designate QDHT as non-differentiable
+function ChainRulesCore.frule(Δargs, ::Type{T}, args...; kwargs...) where {T<:QDHT}
+    return T(args...; kwargs...), DoesNotExist()
+end
+
 function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
     function QDHT_pullback(ΔQ)
         return (NO_FIELDS, map(_ -> DoesNotExist(), args)...)

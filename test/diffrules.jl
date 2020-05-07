@@ -85,6 +85,7 @@ function frule_test(
     end
 
     arginds = findall(ẋs .!== nothing)
+    length(arginds) > 0 || return nothing
     xsargs = deepcopy(xs[arginds])
     ẋsargs = deepcopy(ẋs[arginds])
 
@@ -105,6 +106,7 @@ end
         N = 64
         R = 10.0
         rrule_test(Hankel.QDHT{1,2}, nothing, (R, nothing), (N, nothing))
+        frule_test(Hankel.QDHT{1,2}, (R, nothing), (N, nothing))
     end
 
     @testset "$f(::QDHT, ::Array{$T})" for f in (*, \), T in (Float64, ComplexF64)
