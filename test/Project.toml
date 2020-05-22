@@ -10,8 +10,8 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-ChainRulesCore = "0.7"
-ChainRulesTestUtils = "0.2"
+ChainRulesCore = "0.7, 0.8"
+ChainRulesTestUtils = "0.2, 0.3"
 FiniteDifferences = "0.9, 0.10"
 FunctionZeros = "0.1"
 HCubature = "1.4"
