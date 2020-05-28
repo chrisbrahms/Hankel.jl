@@ -146,7 +146,6 @@ end
         @testset "Vector" begin
             q = Hankel.QDHT{1,2}(10, N)
             fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, N), 6)
-            rrule_test(f, f̄k, (fk, nothing), (q, nothing), (fr, f̄r))
             frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
         end
 
@@ -155,7 +154,6 @@ end
                 q = Hankel.QDHT{1,2}(10, N; dim = dim)
                 s = dim == 1 ? (N, M) : (M, N)
                 fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 6)
-                rrule_test(f, f̄k, (fk, nothing), (q, nothing), (fr, f̄r))
                 frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
             end
         end
@@ -164,7 +162,6 @@ end
             q = Hankel.QDHT{1,2}(10, N; dim = 2)
             s = (M, N, K)
             fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 6)
-            rrule_test(f, f̄k, (fk, nothing), (q, nothing), (fr, f̄r))
             frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
         end
     end
