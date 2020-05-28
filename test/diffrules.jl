@@ -185,8 +185,8 @@ end
                 sy = dim == 1 ? (1, M) : (M, 1)
                 A, Ȧ, Ā = ntuple(_ -> randn(rng, T, s), 3)
                 ȳ = randn(rng, T, sy)
-                rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = dim))
-                frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (; dim = dim))
+                rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (dim = dim,))
+                frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (dim = dim,))
             end
         end
 
@@ -196,8 +196,8 @@ end
             dim = 2
             A, Ȧ, Ā = ntuple(_ -> randn(rng, T, s), 3)
             ȳ = randn(rng, T, sy)
-            rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (; dim = dim))
-            frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (; dim = dim))
+            rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (dim = dim,))
+            frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (dim = dim,))
         end
     end
 end
