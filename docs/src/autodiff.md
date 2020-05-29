@@ -3,20 +3,27 @@
 `Hankel` implements the primitives defined by [`ChainRules`](https://github.com/JuliaDiff/ChainRules.jl) for automatic differentiation (AD).
 These enables all AD packages that use `ChainRules`' rules to differentiate the exported functions.
 
-Here is an example of reverse-mode automatic differentiation using [`Zygote`](https://github.com/FluxML/Zygote.jl):
+Here is an example of reverse-mode automatic differentiation using the master branch of [`Zygote`](https://github.com/FluxML/Zygote.jl).
+To run this example, first call
 
-```@example
+```julia
+julia> using Pkg
+
+julia> Pkg.add(Zygote#master)
+```
+
+Then call the following:
+
+```@repl
 using Hankel, Zygote
-R = 10
-N = 10
+R, N = 10.0, 10
 q = QDHT{0,1}(R, N);
-f(r) = exp(-r^2 / 2)
+f(r) = exp(-r^2 / 2);
 fk = q * f.(q.r)
 # Compute the function and a pullback function for computing the gradient
-I, back = Zygote.pullback(fk -> integrateR(q \ fk, q), fk)
-# Compute the gradient
-Igrad = back(1)
-I, Igrad
+I, back = Zygote.pullback(fk -> integrateR(q \ fk, q), fk);
+I
+Igrad = only(back(1)) # Compute the gradient
 ```
 
 This example computes the gradient of the real space integral of the function `f` with respect to each sampled point in the reciprocal space.
