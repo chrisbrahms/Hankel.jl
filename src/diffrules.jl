@@ -76,14 +76,14 @@ function ChainRulesCore.rrule(::typeof(integrateK), A, Q::QDHT; dim = 1)
     return integrateK(A, Q; dim = dim), integrateK_pullback
 end
 
-_integrateRK_back(ΔΩ, A::AbstractVector, scale; dim = 1) = ΔΩ .* conj.(scale)
+_integrateRK_back(ΔΩ, A::AbstractVector, scale; dim = 1) = ΔΩ .* scale
 function _integrateRK_back(ΔΩ, A::AbstractMatrix, scale; dim = 1)
-    return dim == 1 ? conj.(scale) .* ΔΩ : ΔΩ * scale'
+    return dim == 1 ? scale .* ΔΩ : ΔΩ * scale'
 end
 function _integrateRK_back(ΔΩ, A, scale; dim = 1)
     N = size(A, dim)
     n = ndims(A)
     scalearray = reshape(scale, ntuple(_ -> 1, dim - 1)..., N, ntuple(_ -> 1, n - dim)...)
-    ∂A = ΔΩ .* conj.(scalearray)
+    ∂A = ΔΩ .* scalearray
     return ∂A
 end
