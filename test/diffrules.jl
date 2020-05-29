@@ -109,12 +109,12 @@ end
         frule_test(Hankel.QDHT{1,2}, (R, nothing), (N, nothing))
     end
 
-    @testset "$f(::QDHT, ::Array{$T})" for f in (*, \), T in (Float64, ComplexF64)
+    @testset "$f(::QDHT, ::Array{<:Real})" for f in (*, \)
         rng = MersenneTwister(86)
         N, M, K = 64, 5, 10
         @testset "Vector" begin
             q = Hankel.QDHT{1,2}(10, N)
-            fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, T, N), 4)
+            fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, N), 4)
             rrule_test(f, f̄k, (q, nothing), (fr, f̄r))
             frule_test(f, (q, nothing), (fr, ḟr))
         end
@@ -123,29 +123,27 @@ end
             @testset for dim in (1, 2)
                 q = Hankel.QDHT{1,2}(10, N; dim = dim)
                 s = dim == 1 ? (N, M) : (M, N)
-                fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 4)
+                fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, s), 4)
                 rrule_test(f, f̄k, (q, nothing), (fr, f̄r))
                 frule_test(f, (q, nothing), (fr, ḟr))
             end
         end
 
-        @testset "Array{$T,3}" begin
+        @testset "Array{<:Real,3}" begin
             q = Hankel.QDHT{1,2}(10, N; dim = 2)
             s = (M, N, K)
-            fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 4)
+            fr, ḟr, f̄r, f̄k = ntuple(_ -> randn(rng, s), 4)
             rrule_test(f, f̄k, (q, nothing), (fr, f̄r))
             frule_test(f, (q, nothing), (fr, ḟr))
         end
     end
 
-    @testset "$f(::Array{$T}, ::QDHT, ::Array{$T})" for f in (mul!, ldiv!),
-        T in (Float64, ComplexF64)
-
+    @testset "$f(::Array{<:Real}, ::QDHT, ::Array{<:Real})" for f in (mul!, ldiv!)
         rng = MersenneTwister(86)
         N, M, K = 64, 5, 10
         @testset "Vector" begin
             q = Hankel.QDHT{1,2}(10, N)
-            fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, N), 6)
+            fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, N), 6)
             frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
         end
 
@@ -153,28 +151,26 @@ end
             @testset for dim in (1, 2)
                 q = Hankel.QDHT{1,2}(10, N; dim = dim)
                 s = dim == 1 ? (N, M) : (M, N)
-                fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 6)
+                fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, s), 6)
                 frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
             end
         end
 
-        @testset "Array{$T,3}" begin
+        @testset "Array{<:Real,3}" begin
             q = Hankel.QDHT{1,2}(10, N; dim = 2)
             s = (M, N, K)
-            fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, T, s), 6)
+            fr, fk, ḟr, ḟk, f̄r, f̄k = ntuple(_ -> randn(rng, s), 6)
             frule_test(f, (fk, ḟk), (q, nothing), (fr, ḟr))
         end
     end
 
-    @testset "$f(::Array{$T}, ::QDHT)" for f in (integrateR, integrateK),
-        T in (Float64, ComplexF64)
-
+    @testset "$f(::Array{<:Real}, ::QDHT)" for f in (integrateR, integrateK)
         rng = MersenneTwister(27)
         N, M, K = 64, 5, 10
         q = Hankel.QDHT{1,2}(10, N)
         @testset "Vector" begin
-            A, Ȧ, Ā = ntuple(_ -> randn(rng, T, N), 3)
-            ȳ = randn(rng, T)
+            A, Ȧ, Ā = ntuple(_ -> randn(rng, N), 3)
+            ȳ = randn(rng)
             rrule_test(f, ȳ, (A, Ā), (q, nothing))
             frule_test(f, (A, Ȧ), (q, nothing))
         end
@@ -183,19 +179,19 @@ end
             @testset for dim in (1, 2)
                 s = dim == 1 ? (N, M) : (M, N)
                 sy = dim == 1 ? (1, M) : (M, 1)
-                A, Ȧ, Ā = ntuple(_ -> randn(rng, T, s), 3)
-                ȳ = randn(rng, T, sy)
+                A, Ȧ, Ā = ntuple(_ -> randn(rng, s), 3)
+                ȳ = randn(rng, sy)
                 rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (dim = dim,))
                 frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (dim = dim,))
             end
         end
 
-        @testset "Array{$T,3}" begin
+        @testset "Array{<:Real,3}" begin
             s = (M, N, K)
             sy = (M, 1, K)
             dim = 2
-            A, Ȧ, Ā = ntuple(_ -> randn(rng, T, s), 3)
-            ȳ = randn(rng, T, sy)
+            A, Ȧ, Ā = ntuple(_ -> randn(rng, s), 3)
+            ȳ = randn(rng, sy)
             rrule_test(f, ȳ, (A, Ā), (q, nothing); fkwargs = (dim = dim,))
             frule_test(f, (A, Ȧ), (q, nothing); fkwargs = (dim = dim,))
         end
