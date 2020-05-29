@@ -1,4 +1,5 @@
 # adapted from ChainRulesTestUtils.frule_test
+# allows non-numeric/array arguments and respects `nothing` tangents
 function frule_test(
     f,
     xẋs::Tuple{Any,Any}...;
