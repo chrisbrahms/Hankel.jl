@@ -105,8 +105,27 @@ end
         rng = MersenneTwister(68)
         N = 64
         R = 10.0
-        rrule_test(Hankel.QDHT{1,2}, nothing, (R, nothing), (N, nothing))
-        frule_test(Hankel.QDHT{1,2}, (R, nothing), (N, nothing))
+        q = Hankel.QDHT{1,2}(R, N)
+        @testset "rrule" begin
+            q_rev, back = rrule(Hankel.QDHT{1,2}, R, N)
+            @test typeof(q_rev) === typeof(q)
+            for p in propertynames(q)
+                @test getproperty(q, p) == getproperty(q_rev, p)
+            end
+            ∂QDHT, ∂R, ∂N = back(One())
+            @test ∂QDHT === NO_FIELDS
+            @test ∂R isa AbstractZero
+            @test ∂N isa AbstractZero
+        end
+        @testset "frule" begin
+            ΔQDHT, ΔR, ΔN = DoesNotExist(), One(), One()
+            q_fwd, ∂q = frule((ΔQDHT, ΔR, ΔN), Hankel.QDHT{1,2}, R, N)
+            @test typeof(q_fwd) === typeof(q)
+            for p in propertynames(q)
+                @test getproperty(q, p) == getproperty(q_fwd, p)
+            end
+            @test ∂q isa AbstractZero
+        end
     end
 
     @testset "$f(::QDHT, ::Array{<:Real})" for f in (*, \)
