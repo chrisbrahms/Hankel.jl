@@ -47,8 +47,9 @@ struct QDHT{p, n, T<:Real}
 end
 
 function QDHT{p, n}(R, N; dim=1) where {p, n}
-    pf, R = float.(promote(p, R))
-    cn = convert(typeof(R), sphbesselj_scale(n))
+    R = float(R)
+    pf = oftype(R, p)
+    cn = oftype(R, sphbesselj_scale(n))
     roots = sphbesselj_zero.(pf, n, 1:N) # type of sphbesselj_zero is inferred from first argument
     S = sphbesselj_zero(pf, n, N+1)
     r = roots .* R/S # real-space vector
@@ -86,6 +87,39 @@ are orthogonal polynomials. For the circle, ``n=1``, and for the sphere, ``n=2``
 See [`sphbesselj`](@ref).
 """
 sphericaldim(::QDHT{p,n}) where {p,n} = n
+
+"""
+    inv(Q::QDHT) -> QDHT
+
+Compute the `QDHT` for the inverse of the Hankel transform `Q`, that is, the transform such
+that `Q * A == inv(Q) \\ A`
+"""
+function Base.inv(Q::T) where {T<:QDHT}
+    return T(
+        Q.N,
+        Q.T,
+        Q.j1sq,
+        Q.R,
+        Q.r,
+        Q.K,
+        Q.k,
+        Q.scaleK,
+        Q.scaleR,
+        inv(Q.scaleRK),
+        Q.dim,
+    )
+end
+
+"""
+    reshape(Q::QDHT, N::Int) -> QDHT
+
+Compute a new `QDHT` with the same order, spherical dimension, and radius but with `N`
+points.
+"""
+function Base.reshape(Q::QDHT{p, n}, N::Int) where {p, n}
+    N == Q.N && return Q
+    return QDHT{p, n}(Q.R, N, dim=Q.dim)
+end
 
 "
     mul!(Y, Q::QDHT, A)
@@ -273,15 +307,12 @@ true
 """
 function symmetric(A, Q::QDHT; dim=Q.dim)
     order(Q) == 0 || throw(DomainError("`symmetric` is only supported for 0-order transforms"))
-    s = collect(size(A))
+    s = size(A)
     N = s[dim]
-    s[dim] = 2N + 1
-    out = Array{eltype(A)}(undef, Tuple(s))
-    idxlo = CartesianIndices(size(A)[1:dim-1])
-    idxhi = CartesianIndices(size(A)[dim+1:end])
-    out[idxlo, 1:N, idxhi] .= A[idxlo, N:-1:1, idxhi]
-    out[idxlo, N+1, idxhi] .= squeeze(onaxis(Q*A, Q), dims=dim)
-    out[idxlo, (N+2):(2N+1), idxhi] .= A[idxlo, :, idxhi]
+    idxlo = CartesianIndices(s[1:(dim - 1)])
+    idxhi = CartesianIndices(s[(dim + 1):end])
+    A0 = asarray(onaxis(Q * A, Q))
+    out = cat(view(A, idxlo, N:-1:1, idxhi), A0, view(A, idxlo, :, idxhi); dims=dim)
     return out
 end
 
@@ -312,12 +343,16 @@ julia> Rsymmetric(q)
   7.8973942990196395
 ```
 """
-Rsymmetric(Q::QDHT) = vcat(-Q.r[end:-1:1], 0, Q.r)
+Rsymmetric(Q::QDHT) = vcat(-view(Q.r, lastindex(Q.r):-1:firstindex(Q.r)), 0, Q.r)
 
 """
-    oversample(A, Q::QDHT; factor::Int=4)
+    oversample(A, Q::QDHT; factor::Int=4) -> Tuple{AbstractArray,QDHT}
+    oversample(A, Q::QDHT, QNew::QDHT) -> AbstractArray
 
 Oversample (smooth) the array `A`, which is sampled with the `QDHT` `Q`, by a `factor`.
+
+If calling the function many times, it is more efficient to precompute `QNew` with
+[`reshape`](@ref) and then provide it to the function.
 
 This works like Fourier-domain zero-padding: a new `QDHT` is created with the same radius,
 but `factor` times more points. The existing array is transformed and placed onto this
@@ -328,16 +363,13 @@ same shape in space but with more samples.
     Unlike in zero-padding using FFTs, the old and oversampled **spatial** grids do not
     have any sampling points in common.
 """
-function oversample(A, Q::QDHT{p, n}; factor::Int=4) where {p, n}
-    factor == 1 && (return A, Q)
-    QNew = QDHT{p, n}(Q.R, factor*Q.N, dim=Q.dim)
-    @assert all(QNew.k[1:Q.N] .≈ Q.k)
+function oversample(A, Q::QDHT; factor::Int=4)
+    QNew = reshape(Q, Q.N * factor)
+    return oversample(A, Q, QNew), QNew
+end
+function oversample(A, Q::QDHT, QNew::QDHT)
     Ak = Q * A
-    shape = collect(size(A))
-    shape[Q.dim] = QNew.N
-    Ako = zeros(eltype(A), Tuple(shape))
-    idxlo = CartesianIndices(size(Ako)[1:Q.dim - 1])
-    idxhi = CartesianIndices(size(Ako)[Q.dim + 1:end])
-    Ako[idxlo, 1:Q.N, idxhi] .= Ak
-    return QNew \ Ako, QNew
+    Ako = padzeros(Ak, QNew.N; dim = QNew.dim)
+    Ao = QNew \ Ako
+    return Ao
 end

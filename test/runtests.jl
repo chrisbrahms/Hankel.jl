@@ -3,6 +3,10 @@ using Hankel
 import LinearAlgebra: diagm, mul!, ldiv!
 import SpecialFunctions: besseli, besselix, besselj
 import HCubature: hquadrature
+using FiniteDifferences
+using Random
+using ChainRulesCore
+using ChainRulesTestUtils
 
 # Brute-force equivalent of Hankel.dot! - slow but certain to be correct
 function slowdot!(out, M, V; dim=1)
@@ -88,3 +92,4 @@ end
 end
 
 include("qdht.jl")
+include("diffrules.jl")

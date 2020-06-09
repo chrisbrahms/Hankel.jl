@@ -1,11 +1,18 @@
-"""
-    squeeze(A; dims)
+asarray(x::AbstractArray) = x
+asarray(x::Number) = fill(x, ())
 
-Wrapper around `dropdims` to handle both numbers (return just the number) and arrays
-(return `dropdims(A; dims)`).
 """
-squeeze(A::Number; dims) = A
-squeeze(A::AbstractArray; dims) = dropdims(A, dims=dims)
+    padzeros(A, N; dim = 1)
+
+Pad array `A` with zeros to length `N` along dimension `dim`.
+"""
+function padzeros(A, N; dim = 1)
+    shape = size(A)
+    Nold = shape[dim]
+    shape = Base.setindex(shape, N - Nold, dim)
+    zs = zeros(eltype(A), shape)
+    return cat(A, zs; dims = dim)
+end
 
 """
     dot!(out, M, V; dim=1)
@@ -147,13 +154,13 @@ function sphbesselj(p, n, x)
     if abs(x) ≤ sqrt(eps(real(zero(Jppa))))
         if p == 0
             J0pa = cn / gamma(α + 1) / 2^α
-            return convert(typeof(Jppa), J0pa)
+            return oftype(Jppa, J0pa)
         else
             return zero(Jppa)
         end
     end
     jp = cn * Jppa / x^α
-    return convert(typeof(Jppa), jp)
+    return oftype(Jppa, jp)
 end
 
 """
