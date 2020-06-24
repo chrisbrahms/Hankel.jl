@@ -1,7 +1,7 @@
 name = "Hankel"
 uuid = "74863788-d124-456e-a676-9b76578dd39e"
 authors = ["chrisbrahms <38351086+chrisbrahms@users.noreply.github.com>"]
-version = "0.5.0"
+version = "0.5.1"
 
 [deps]
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
