@@ -3,13 +3,13 @@
 `Hankel` implements the primitives defined by [`ChainRules`](https://github.com/JuliaDiff/ChainRules.jl) for automatic differentiation (AD).
 These enables all AD packages that use `ChainRules`' rules to differentiate the exported functions.
 
-Here is an example of reverse-mode automatic differentiation using the master branch of [`Zygote`](https://github.com/FluxML/Zygote.jl).
+Here is an example of reverse-mode automatic differentiation using [`Zygote`](https://github.com/FluxML/Zygote.jl).
 To run this example, first call
 
 ```julia
 julia> using Pkg
 
-julia> Pkg.add(Zygote#master)
+julia> Pkg.add(Zygote)
 ```
 
 Then call the following:
