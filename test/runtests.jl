@@ -85,9 +85,12 @@ end
         @test Hankel.sphbesselj(2, 4, 0.2) ≈ besselj(3.5, 0.2) * √(π / 2 / 0.2^3)
     end
 
-    @testset "sphbesselj_zero($p, $n, $m)" for p in 1:4, n in 1:4, m in 1:200
-        z = Hankel.sphbesselj_zero(p, n, m)
-        @test isapprox(Hankel.sphbesselj(p, n, z), 0; atol = 1e-12)
+    @testset "sphbesselj_zero($p, $n, m) for m = 1:200" for p in [1:4; 10; 20; 50; 100; 500], n in 1:4
+        zs = Hankel.sphbesselj_zero.(p, n, 1:200)
+        # test sequence is monotonic
+        @test all(>(0), zs[2:end] .- zs[1:end-1])
+        # test are zeros
+        @test all(x -> isapprox(x, 0; atol=1e-12), Hankel.sphbesselj.(p, n, zs))
     end
 end
 
