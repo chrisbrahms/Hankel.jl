@@ -174,11 +174,11 @@ end
                 tmp = q * vv
                 global vv = q \ tmp
             end
-            @test all(isapprox.(v, vv, atol=2e-12))
+            @test all(isapprox.(v, vv, atol=8e-12))
             vk = q * v
             vka = fk.(q.k)
             fki(k) = hquadrature(r -> r.*f(r).*besselj(0, k.*r), 0, R)[1]
-            @test all(isapprox.(vka, vk, atol=5e-22))
+            @test all(isapprox.(vka, vk, atol=9e-22))
             @test fki(q.k[1]) ≈ vk[1] # doing all of them takes too long
             @test fki(q.k[128]) ≈ vk[128]
             Er = Hankel.integrateR(v.^2, q)
