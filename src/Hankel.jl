@@ -1,5 +1,7 @@
 module Hankel
 import SpecialFunctions: besselj, gamma
+using GSL: GSL
+using Roots: Roots
 import LinearAlgebra: mul!, ldiv!, dot
 import Base: *, \
 using ChainRulesCore
