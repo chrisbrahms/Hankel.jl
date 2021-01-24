@@ -164,6 +164,28 @@ function sphbesselj(p, n, x)
 end
 
 """
+    besselj_zero_init(nu, n)
+
+Get an initial guess of the ``n``th zero of the Bessel function of order ``\\nu``.
+"""
+function besselj_zero_init(nu, n)
+    T = float(eltype(nu))
+    iszero(nu) && return T(GSL.sf_bessel_zero_J0(n))
+    isone(nu) && return T(GSL.sf_bessel_zero_J1(n))
+    return T(GSL.sf_bessel_zero_Jnu(nu, n))
+end
+
+# Adapted from FunctionZeros.besselj_zero, with different initialization
+"""
+    besselj_zero(nu, n)
+
+Get the ``n``th zero of the Bessel function of order ``\\nu``.
+"""
+function besselj_zero(nu, n; order=2)
+    return Roots.fzero(x -> besselj(nu, x), besselj_zero_init(nu, n); order=order)
+end
+
+"""
     sphbesselj_zero(p, n, m)
 
 Get the ``m``th zero of the (hyper)spherical Bessel function of order ``p`` and spherical

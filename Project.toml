@@ -1,16 +1,18 @@
 name = "Hankel"
 uuid = "74863788-d124-456e-a676-9b76578dd39e"
 authors = ["chrisbrahms <38351086+chrisbrahms@users.noreply.github.com>"]
-version = "0.5.1"
+version = "0.5.2"
 
 [deps]
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-FunctionZeros = "b21f74c0-b399-568f-9643-d20f4fa2c814"
+GSL = "92c85e6c-cbff-5e0c-80f7-495c94daaecd"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 ChainRulesCore = "0.7, 0.8, 0.9"
-FunctionZeros = "0.1"
+GSL = "0.6, 1"
+Roots = "0.8, 1"
 SpecialFunctions = "0.10"
 julia = "1"
