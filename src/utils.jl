@@ -181,8 +181,8 @@ end
 
 Get the ``n``th zero of the Bessel function of order ``\\nu``.
 """
-function besselj_zero(nu, n; order=2)
-    return Roots.fzero(x -> besselj(nu, x), besselj_zero_init(nu, n); order=order)
+function besselj_zero(nu, n)
+    return Roots.find_zero(x -> besselj(nu, x), besselj_zero_init(nu, n), Roots.Order2())
 end
 
 """
