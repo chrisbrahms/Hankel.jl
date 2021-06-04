@@ -12,7 +12,7 @@ function frule_test(
     xs, ẋs = first.(xẋs), last.(xẋs)
 
     y = f(deepcopy(xs)...; fkwargs...)
-    y_ad, dy_ad = frule((NO_FIELDS, deepcopy(ẋs)...), f, deepcopy(xs)...; fkwargs...)
+    y_ad, dy_ad = frule((NoTangent(), deepcopy(ẋs)...), f, deepcopy(xs)...; fkwargs...)
     if y isa Number || y isa AbstractVector
         @test isapprox(y_ad, y; rtol = rtol, atol = atol, kwargs...)
     end
@@ -40,7 +40,7 @@ function frule_test(
 
     dy_fd = jvp(fdm, xs -> f2(xs...; fkwargs...), (xsargs, ẋsargs))
     @test isapprox(
-        collect(extern.(dy_ad)),  # Use collect so can use vector equality
+        collect(unthunk.(dy_ad)),  # Use collect so can use vector equality
         collect(dy_fd);
         rtol = rtol,
         atol = atol,
@@ -62,12 +62,12 @@ end
                 @test getproperty(q, p) == getproperty(q_rev, p)
             end
             ∂QDHT, ∂R, ∂N = back(One())
-            @test ∂QDHT === NO_FIELDS
+            @test ∂QDHT === NoTangent()
             @test ∂R isa AbstractZero
             @test ∂N isa AbstractZero
         end
         @testset "frule" begin
-            ΔQDHT, ΔR, ΔN = DoesNotExist(), One(), One()
+            ΔQDHT, ΔR, ΔN = NoTangent(), One(), One()
             q_fwd, ∂q = frule((ΔQDHT, ΔR, ΔN), Hankel.QDHT{1,2}, R, N)
             @test typeof(q_fwd) === typeof(q)
             for p in propertynames(q)

@@ -3,12 +3,12 @@
 ## Constructor
 ### These rules designate QDHT as non-differentiable
 function ChainRulesCore.frule(Δargs, ::Type{T}, args...; kwargs...) where {T<:QDHT}
-    return T(args...; kwargs...), DoesNotExist()
+    return T(args...; kwargs...), NoTangent()
 end
 
 function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
     function QDHT_pullback(ΔQ)
-        return (NO_FIELDS, map(_ -> DoesNotExist(), args)...)
+        return (NoTangent(), map(_ -> NoTangent(), args)...)
     end
     return T(args...; kwargs...), QDHT_pullback
 end
@@ -26,9 +26,9 @@ end
 function ChainRulesCore.rrule(::typeof(*), Q::QDHT, A)
     Y = Q * A
     function mul_pullback(ΔY)
-        ∂Q = DoesNotExist()
+        ∂Q = NoTangent()
         ∂A = @thunk _mul_back(ΔY, Q, A, Q.scaleRK)
-        return NO_FIELDS, ∂Q, ∂A
+        return NoTangent(), ∂Q, ∂A
     end
     return Y, mul_pullback
 end
@@ -36,9 +36,9 @@ end
 function ChainRulesCore.rrule(::typeof(\), Q::QDHT, A)
     Y = Q \ A
     function ldiv_pullback(ΔY)
-        ∂Q = DoesNotExist()
+        ∂Q = NoTangent()
         ∂A = @thunk _mul_back(ΔY, Q, A, inv(Q.scaleRK))
-        return NO_FIELDS, ∂Q, ∂A
+        return NoTangent(), ∂Q, ∂A
     end
     return Y, ldiv_pullback
 end
@@ -63,7 +63,7 @@ end
 function ChainRulesCore.rrule(::typeof(integrateR), A, Q::QDHT; dim = 1)
     function integrateR_pullback(ΔΩ)
         ∂A = @thunk _integrateRK_back(ΔΩ, A, Q.scaleR; dim = dim)
-        return NO_FIELDS, ∂A, DoesNotExist()
+        return NoTangent(), ∂A, NoTangent()
     end
     return integrateR(A, Q; dim = dim), integrateR_pullback
 end
@@ -71,7 +71,7 @@ end
 function ChainRulesCore.rrule(::typeof(integrateK), A, Q::QDHT; dim = 1)
     function integrateK_pullback(ΔΩ)
         ∂A = @thunk _integrateRK_back(ΔΩ, A, Q.scaleK; dim = dim)
-        return NO_FIELDS, ∂A, DoesNotExist()
+        return NoTangent(), ∂A, NoTangent()
     end
     return integrateK(A, Q; dim = dim), integrateK_pullback
 end
