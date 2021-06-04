@@ -1,7 +1,7 @@
 name = "Hankel"
 uuid = "74863788-d124-456e-a676-9b76578dd39e"
 authors = ["chrisbrahms <38351086+chrisbrahms@users.noreply.github.com>"]
-version = "0.5.4"
+version = "0.5.5"
 
 [deps]
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
@@ -11,7 +11,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
-ChainRulesCore = "0.7, 0.8, 0.9"
+ChainRulesCore = "0.9.44, 0.10"
 GSL = "0.6, 1"
 Roots = "0.8, 1"
 SpecialFunctions = "0.10, 1"
