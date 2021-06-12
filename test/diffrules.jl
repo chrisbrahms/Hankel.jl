@@ -106,7 +106,7 @@
             sy = (M, 1, K)
             dim = 2
             A = randn(rng, s)
-            test_rrule(f, A, q ⊢ NoTangent(); fkwargs = (dim = dim,), check_inferred=false)
+            test_rrule(f, A, q ⊢ NoTangent(); fkwargs = (dim = dim,))
             test_frule(f, A, q ⊢ NoTangent(); fkwargs = (dim = dim,))
         end
     end
