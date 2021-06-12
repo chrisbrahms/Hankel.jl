@@ -82,8 +82,9 @@ function _integrateRK_back(ΔΩ, A::AbstractMatrix, scale; dim = 1)
 end
 function _integrateRK_back(ΔΩ, A, scale; dim = 1)
     N = size(A, dim)
-    n = ndims(A)
-    scalearray = reshape(scale, ntuple(_ -> 1, dim - 1)..., N, ntuple(_ -> 1, n - dim)...)
+    sz = ntuple(_ -> 1, ndims(A))
+    sz = Base.setindex(sz, N, dim)
+    scalearray = reshape(scale, sz)
     ∂A = ΔΩ .* scalearray
     return ∂A
 end
