@@ -11,7 +11,7 @@ Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
-ChainRulesCore = "0.9.44, 0.10"
+ChainRulesCore = "0.9.44, 0.10, 1.0"
 GSL = "0.6, 1"
 Roots = "0.8, 1"
 SpecialFunctions = "0.10, 1"
