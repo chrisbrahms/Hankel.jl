@@ -3,7 +3,6 @@ using Hankel
 import LinearAlgebra: diagm, mul!, ldiv!
 import SpecialFunctions: besseli, besselix, besselj
 import HCubature: hquadrature
-using FiniteDifferences
 using Random
 using ChainRulesCore
 using ChainRulesTestUtils
