@@ -12,6 +12,6 @@ const J₀₀ = besselj(0, 0)
 
 include("utils.jl")
 include("qdht.jl")
-include("diffrules.jl")
+include("chainrules.jl")
 
 end
