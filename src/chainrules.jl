@@ -14,20 +14,20 @@ function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
 end
 
 ## rules for fwd/rev transform
-ChainRulesCore.frule((_, _, ΔA), ::typeof(*), Q::QDHT, A) = (Q * A, Q * ΔA)
-ChainRulesCore.frule((_, _, ΔA), ::typeof(\), Q::QDHT, A) = (Q \ A, Q \ ΔA)
+ChainRulesCore.frule((_, _, ΔA), ::typeof(*), Q::QDHT, A) = (Q * A, Q * unthunk(ΔA))
+ChainRulesCore.frule((_, _, ΔA), ::typeof(\), Q::QDHT, A) = (Q \ A, Q \ unthunk(ΔA))
 function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(mul!), Y, Q::QDHT, A)
-    return mul!(Y, Q, A), mul!(ΔY, Q, ΔA)
+    return mul!(Y, Q, A), mul!(unthunk(ΔY), Q, unthunk(ΔA))
 end
 function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(ldiv!), Y, Q::QDHT, A)
-    return ldiv!(Y, Q, A), ldiv!(ΔY, Q, ΔA)
+    return ldiv!(Y, Q, A), ldiv!(unthunk(ΔY), Q, unthunk(ΔA))
 end
 
 function ChainRulesCore.rrule(::typeof(*), Q::QDHT, A)
     Y = Q * A
     function mul_pullback(ΔY)
         ∂Q = NoTangent()
-        ∂A = @thunk _mul_back(ΔY, Q, A, Q.scaleRK)
+        ∂A = _mul_back(unthunk(ΔY), Q, A, Q.scaleRK)
         return NoTangent(), ∂Q, ∂A
     end
     return Y, mul_pullback
@@ -37,7 +37,7 @@ function ChainRulesCore.rrule(::typeof(\), Q::QDHT, A)
     Y = Q \ A
     function ldiv_pullback(ΔY)
         ∂Q = NoTangent()
-        ∂A = @thunk _mul_back(ΔY, Q, A, inv(Q.scaleRK))
+        ∂A = _mul_back(unthunk(ΔY), Q, A, inv(Q.scaleRK))
         return NoTangent(), ∂Q, ∂A
     end
     return Y, ldiv_pullback
@@ -53,16 +53,16 @@ end
 
 ## rules for integrateR/integrateK
 function ChainRulesCore.frule((_, ΔA, _), ::typeof(integrateR), A, Q::QDHT; kwargs...)
-    return integrateR(A, Q; kwargs...), integrateR(ΔA, Q; kwargs...)
+    return integrateR(A, Q; kwargs...), integrateR(unthunk(ΔA), Q; kwargs...)
 end
 
 function ChainRulesCore.frule((_, ΔA, _), ::typeof(integrateK), A, Q::QDHT; kwargs...)
-    return integrateK(A, Q; kwargs...), integrateK(ΔA, Q; kwargs...)
+    return integrateK(A, Q; kwargs...), integrateK(unthunk(ΔA), Q; kwargs...)
 end
 
 function ChainRulesCore.rrule(::typeof(integrateR), A, Q::QDHT; dim = 1)
     function integrateR_pullback(ΔΩ)
-        ∂A = @thunk _integrateRK_back(ΔΩ, A, Q.scaleR; dim = dim)
+        ∂A = _integrateRK_back(unthunk(ΔΩ), A, Q.scaleR; dim = dim)
         return NoTangent(), ∂A, NoTangent()
     end
     return integrateR(A, Q; dim = dim), integrateR_pullback
@@ -70,7 +70,7 @@ end
 
 function ChainRulesCore.rrule(::typeof(integrateK), A, Q::QDHT; dim = 1)
     function integrateK_pullback(ΔΩ)
-        ∂A = @thunk _integrateRK_back(ΔΩ, A, Q.scaleK; dim = dim)
+        ∂A = _integrateRK_back(unthunk(ΔΩ), A, Q.scaleK; dim = dim)
         return NoTangent(), ∂A, NoTangent()
     end
     return integrateK(A, Q; dim = dim), integrateK_pullback
