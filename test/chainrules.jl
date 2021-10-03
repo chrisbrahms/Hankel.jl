@@ -1,9 +1,29 @@
 @testset "Automatic differentiation rules" begin
     @testset "QDHT" begin
+        rng = MersenneTwister(68)
         N = 64
         R = 10.0
-        test_rrule(Hankel.QDHT{1,2}, R ⊢ ZeroTangent(), N)
-        test_frule(Hankel.QDHT{1,2}, R ⊢ ZeroTangent(), N)
+        q = Hankel.QDHT{1,2}(R, N)
+        @testset "rrule" begin
+            q_rev, back = rrule(Hankel.QDHT{1,2}, R, N)
+            @test typeof(q_rev) === typeof(q)
+            for p in propertynames(q)
+                @test getproperty(q, p) == getproperty(q_rev, p)
+            end
+            ∂QDHT, ∂R, ∂N = back(true)
+            @test ∂QDHT === NoTangent()
+            @test ∂R isa AbstractZero
+            @test ∂N isa AbstractZero
+        end
+        @testset "frule" begin
+            ΔQDHT, ΔR, ΔN = NoTangent(), true, true
+            q_fwd, ∂q = frule((ΔQDHT, ΔR, ΔN), Hankel.QDHT{1,2}, R, N)
+            @test typeof(q_fwd) === typeof(q)
+            for p in propertynames(q)
+                @test getproperty(q, p) == getproperty(q_fwd, p)
+            end
+            @test ∂q isa AbstractZero
+        end
     end
 
     @testset "$f(::QDHT, ::Array{<:Real})" for f in (*, \)
