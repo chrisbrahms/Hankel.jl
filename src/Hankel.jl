@@ -2,7 +2,8 @@ module Hankel
 import SpecialFunctions: besselj, gamma
 using GSL: GSL
 using Roots: Roots
-import LinearAlgebra: mul!, ldiv!, dot
+import LinearAlgebra: mul!, ldiv!
+using LinearAlgebra: axpy!, dot
 import Base: *, \
 using ChainRulesCore
 
