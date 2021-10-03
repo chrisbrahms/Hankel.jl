@@ -84,40 +84,47 @@ function _mul_back(ΔY, Q, A, s)
     return ∂A
 end
 
-## rules for integrateR/integrateK
-function ChainRulesCore.frule((_, ΔA, _), ::typeof(integrateR), A, Q::QDHT; kwargs...)
-    return integrateR(A, Q; kwargs...), integrateR(unthunk(ΔA), Q; kwargs...)
+## rules for dimdot
+function ChainRulesCore.frule((_, Δv, ΔA), ::typeof(dimdot), v, A::AbstractVector; dim = 1)
+    return dot(v, A), dot(v, ΔA) + dot(Δv, A)
+end
+function ChainRulesCore.frule((_, Δv, ΔA), ::typeof(dimdot), v, A; dim = 1)
+    out = dimdot(v, A; dim = dim)
+    ∂out = zero(out)
+    ∂v, ∂A = unthunk(Δv), unthunk(ΔA)
+    ∂v isa AbstractZero || dimdot!(∂out, ∂v, A; dim = dim)
+    ∂A isa AbstractZero || dimdot!(∂out, v, ∂A; dim = dim)
+    return out, ∂out
 end
 
-function ChainRulesCore.frule((_, ΔA, _), ::typeof(integrateK), A, Q::QDHT; kwargs...)
-    return integrateK(A, Q; kwargs...), integrateK(unthunk(ΔA), Q; kwargs...)
-end
-
-function ChainRulesCore.rrule(::typeof(integrateR), A, Q::QDHT; dim = 1)
-    function integrateR_pullback(ΔΩ)
-        ∂A = _integrateRK_back(unthunk(ΔΩ), A, Q.scaleR; dim = dim)
-        return NoTangent(), ∂A, NoTangent()
+function ChainRulesCore.rrule(::typeof(dimdot), v, A; dim = 1)
+    project_A = ProjectTo(A)
+    project_v = ProjectTo(v)
+    function dimdot_pullback(Δout)
+        ∂out = unthunk(Δout)
+        ∂v = @thunk project_v(_dimdot_v_back(∂out, v, A, dim))
+        ∂A = @thunk project_A(_dimdot_A_back(∂out, v, A, dim))
+        return NoTangent(), ∂v, ∂A
     end
-    return integrateR(A, Q; dim = dim), integrateR_pullback
+    return dimdot(v, A; dim = dim), dimdot_pullback
 end
 
-function ChainRulesCore.rrule(::typeof(integrateK), A, Q::QDHT; dim = 1)
-    function integrateK_pullback(ΔΩ)
-        ∂A = _integrateRK_back(unthunk(ΔΩ), A, Q.scaleK; dim = dim)
-        return NoTangent(), ∂A, NoTangent()
-    end
-    return integrateK(A, Q; dim = dim), integrateK_pullback
+_dimdot_A_back(Δout, v, A::AbstractVector, dim) = v .* Δout
+function _dimdot_A_back(Δout, v, A::AbstractMatrix, dim)
+    return dim == 1 ? v * Δout : Δout * transpose(v)
+end
+function _dimdot_A_back(Δout, v, A, dim)
+    N = length(v)
+    sz = ntuple(i -> ifelse(i == dim, N, 1), ndims(A))
+    v_arr = reshape(v, sz)
+    return v_arr .* Δout
 end
 
-_integrateRK_back(ΔΩ, A::AbstractVector, scale; dim = 1) = ΔΩ .* scale
-function _integrateRK_back(ΔΩ, A::AbstractMatrix, scale; dim = 1)
-    return dim == 1 ? scale .* ΔΩ : ΔΩ * scale'
-end
-function _integrateRK_back(ΔΩ, A, scale; dim = 1)
+_dimdot_v_back(Δout, v, A::AbstractVecOrMat, dim) = vec(dim == 1 ? A * Δout' : Δout' * A)
+function _dimdot_v_back(Δout, v, A, dim)
     N = size(A, dim)
-    sz = ntuple(_ -> 1, ndims(A))
-    sz = Base.setindex(sz, N, dim)
-    scalearray = reshape(scale, sz)
-    ∂A = ΔΩ .* scalearray
-    return ∂A
+    perm = ((1:(dim-1))..., ((dim+1):ndims(A))..., dim)
+    A_mat = reshape(permutedims(A, perm), (:, N))
+    ∂out_mat = vec(permutedims(Δout, perm))
+    return vec(∂out_mat' * A_mat)
 end
