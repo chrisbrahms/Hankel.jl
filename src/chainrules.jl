@@ -1,16 +1,38 @@
 # Rules for automatic differentiation
 
 ## Constructor
-### These rules designate QDHT as non-differentiable
-function ChainRulesCore.frule(Δargs, ::Type{T}, args...; kwargs...) where {T<:QDHT}
-    return T(args...; kwargs...), NoTangent()
+function ChainRulesCore.frule((_, ΔR, _), ::Type{QT}, R0, N; kwargs...) where {QT<:QDHT}
+    Q = QT(R0, N; kwargs...)
+    n = sphericaldim(Q)
+    R = Q.R
+    K = Q.K
+
+    ∂c = ΔR / R
+    ∂d = (n + 1) * ∂c
+    ∂Q = Tangent{typeof(Q)}(;
+        K = -K * ∂c,
+        k = @thunk(Q.k .* -∂c),
+        R = ΔR,
+        r = @thunk(Q.r .* ∂c),
+        scaleR = @thunk(Q.scaleR .* ∂d),
+        scaleK = @thunk(Q.scaleK .* -∂d),
+        scaleRK = scaleRK * ∂d,
+    )
+    return Q, ∂Q
 end
 
-function ChainRulesCore.rrule(::Type{T}, args...; kwargs...) where {T<:QDHT}
+function ChainRulesCore.rrule(::Type{QT}, R0, N; kwargs...) where {QT<:QDHT}
+    Q = QT(R0, N; kwargs...)
+    project_R0 = ProjectTo(R0)
     function QDHT_pullback(ΔQ)
-        return (NoTangent(), map(_ -> NoTangent(), args)...)
+        n = sphericaldim(Q)
+        ∂Q = unthunk(ΔQ)
+        ∂d = muladd(Q.scaleRK, ∂Q.scaleRK, dot(Q.scaleR, ∂Q.scaleR) - dot(Q.scaleK, ∂Q.scaleK))
+        ∂c = muladd(-Q.K, ∂Q.K, (n + 1) * ∂d - dot(Q.k, ∂Q.k) + dot(Q.r, ∂Q.r))
+        ∂R0 = project_R0(∂c / Q.R + ∂Q.R)
+        return (NoTangent(), ∂R0, NoTangent())
     end
-    return T(args...; kwargs...), QDHT_pullback
+    return Q, QDHT_pullback
 end
 
 ## rules for fwd/rev transform
