@@ -36,31 +36,42 @@ function ChainRulesCore.rrule(::Type{QT}, R0, N; kwargs...) where {QT<:QDHT}
 end
 
 ## rules for fwd/rev transform
-ChainRulesCore.frule((_, _, ΔA), ::typeof(*), Q::QDHT, A) = (Q * A, Q * unthunk(ΔA))
-ChainRulesCore.frule((_, _, ΔA), ::typeof(\), Q::QDHT, A) = (Q \ A, Q \ unthunk(ΔA))
-function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(mul!), Y, Q::QDHT, A)
-    return mul!(Y, Q, A), mul!(unthunk(ΔY), Q, unthunk(ΔA))
+function ChainRulesCore.frule((_, ΔY, ΔQ, ΔA), ::typeof(mul!), Y, Q::QDHT, A)
+    mul!(Y, Q, A)
+    mul!(ΔY, Q, unthunk(ΔA))
+    axpy!(ΔQ.∂scaleRK / Q.scaleRK, Y, ΔY)
+    return Y, ΔY
 end
-function ChainRulesCore.frule((_, ΔY, _, ΔA), ::typeof(ldiv!), Y, Q::QDHT, A)
-    return ldiv!(Y, Q, A), ldiv!(unthunk(ΔY), Q, unthunk(ΔA))
+function ChainRulesCore.frule((_, ΔY, ΔQ, ΔA), ::typeof(ldiv!), Y, Q::QDHT, A)
+    ldiv!(Y, Q, A)
+    ldiv!(ΔY, Q, unthunk(ΔA))
+    axpy!(-ΔQ.∂scaleRK / Q.scaleRK, Y, ΔY)
+    return Y, ΔY
 end
 
 function ChainRulesCore.rrule(::typeof(*), Q::QDHT, A)
     Y = Q * A
+    project_A = ProjectTo(A)
+    project_scaleRK = ProjectTo(Q.scaleRK)
     function mul_pullback(ΔY)
-        ∂Q = NoTangent()
-        ∂A = _mul_back(unthunk(ΔY), Q, A, Q.scaleRK)
-        return NoTangent(), ∂Q, ∂A
+        ∂Y = unthunk(ΔY)
+        ∂A = @thunk _mul_back(∂Y, Q, A, Q.scaleRK)
+        ∂Q = Tangent{typeof(Q)}(; scaleRK = @thunk(project_scaleRK(dot(Y, ∂Y) / Q.scaleRK)))
+        return NoTangent(), ∂Q, project_A(∂A)
     end
     return Y, mul_pullback
 end
 
 function ChainRulesCore.rrule(::typeof(\), Q::QDHT, A)
     Y = Q \ A
+    project_A = ProjectTo(A)
+    project_scaleRK = ProjectTo(Q.scaleRK)
     function ldiv_pullback(ΔY)
-        ∂Q = NoTangent()
-        ∂A = _mul_back(unthunk(ΔY), Q, A, inv(Q.scaleRK))
-        return NoTangent(), ∂Q, ∂A
+        ∂Y = unthunk(ΔY)
+        c = inv(Q.scaleRK)
+        ∂A = _mul_back(∂Y, Q, A, c)
+        ∂Q = Tangent{typeof(Q)}(; scaleRK = @thunk(project_scaleRK(dot(Y, ∂Y) * -c)))
+        return NoTangent(), ∂Q, project_A(∂A)
     end
     return Y, ldiv_pullback
 end
