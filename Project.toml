@@ -13,6 +13,6 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 [compat]
 ChainRulesCore = "0.9.44, 0.10, 1"
 GSL = "0.6, 1"
-Roots = "0.8, 1"
+Roots = "0.8, 1, 2.0"
 SpecialFunctions = "0.10, 1, 2.0"
 julia = "1"
