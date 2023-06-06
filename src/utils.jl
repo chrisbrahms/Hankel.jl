@@ -46,7 +46,7 @@ function dot!(out, M, V::AbstractArray{T, 2}; dim=1) where T
     end
 end
 
-function dot!(out, M, V::AbstractArray; dim=1) where T
+function dot!(out, M, V::AbstractArray; dim=1)
     size(V, dim) == size(M, 1) || throw(DomainError(
         "Size of V along dim must be same as size of M"))
     size(out) == size(V) || throw(DomainError("Input and output arrays must have same size"))
