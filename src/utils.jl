@@ -84,9 +84,8 @@ Calculate the dot product between vector `v` and one dimension of array `A`, ite
 all other dimensions.
 """
 function dimdot(v, A; dim=1)
-    dims = collect(size(A))
-    dims[dim] = 1
-    out = Array{eltype(A)}(undef, Tuple(dims))
+    dims = Base.setindex(size(A), 1, dim)
+    out = zeros(eltype(A), dims)
     dimdot!(out, v, A; dim=dim)
     return out
 end
@@ -104,7 +103,7 @@ end
 function _dimdot!(out, v, A, idxlo, idxhi)
     for lo in idxlo
         for hi in idxhi
-            out[lo, 1, hi] = dot(v, view(A, lo, :, hi))
+            out[lo, 1, hi] += dot(v, view(A, lo, :, hi))
         end
     end
 end
